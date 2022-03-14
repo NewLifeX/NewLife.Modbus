@@ -2,8 +2,8 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <RootNamespace>NewLife.IoT</RootNamespace>
-    <AssemblyTitle>Modbus协议</AssemblyTitle>
-    <Description>Modbus基础协议，包括ModbusTcp</Description>
+    <AssemblyTitle>ModbusRTU协议</AssemblyTitle>
+    <Description>串口ModbusRTU协议</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2022 新生命开发团队</Copyright>
     <VersionPrefix>1.0</VersionPrefix>
@@ -44,10 +44,15 @@
 
   <ItemGroup>
     <PackageReference Include="NewLife.Core" Version="9.0.2022.304" />
+    <PackageReference Include="System.IO.Ports" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="..\Doc\leaf.png" Link="leaf.png" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Modbus\NewLife.Modbus.csproj" />
   </ItemGroup>
 
 </Project>
