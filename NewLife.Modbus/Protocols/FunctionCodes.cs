@@ -29,6 +29,10 @@ public enum FunctionCodes : Byte
     [Description("06写保持寄存器")]
     WriteRegister = 6,
 
+    /// <summary>诊断</summary>
+    [Description("08诊断")]
+    Diagnostics = 8,
+
     /// <summary>写多个线圈</summary>
     [Description("15写多个线圈")]
     WriteCoils = 15,
@@ -37,5 +41,11 @@ public enum FunctionCodes : Byte
     [Description("16写多个保持寄存器")]
     WriteRegisters = 16,
 
-    //ReadWriteMultipleRegisters = 23,
+    /// <summary>写文件</summary>
+    [Description("21写文件")]
+    WriteFileRecord = 21,
+
+    /// <summary>读写多个保持寄存器</summary>
+    [Description("23读写多个保持寄存器")]
+    ReadWriteMultipleRegisters = 23,
 }
