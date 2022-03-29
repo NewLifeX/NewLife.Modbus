@@ -3,9 +3,6 @@ name: publish-beta
 on:
   push:
     branches: [ master main ]
-    paths:
-        - 'NewLife.Modbus/**'
-        - 'NewLife.ModbusRTU/**'
 
 jobs:
   build-publish:
