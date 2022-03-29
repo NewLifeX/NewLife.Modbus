@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NewLife.ModbusRTU\NewLife.ModbusRTU.csproj" />
     <ProjectReference Include="..\NewLife.Modbus\NewLife.Modbus.csproj" />
   </ItemGroup>
 
