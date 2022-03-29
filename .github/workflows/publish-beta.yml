@@ -2,7 +2,7 @@ name: publish-beta
 
 on:
   push:
-    branches: [ master main ]
+    branches: [ main ]
 
 jobs:
   build-publish:
