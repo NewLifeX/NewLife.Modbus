@@ -43,7 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NewLife.Core" Version="9.0.2022.304" />
+    <PackageReference Include="NewLife.Core" Version="9.0.2022.322-beta0315" />
     <PackageReference Include="System.IO.Ports" Version="6.0.0" />
   </ItemGroup>
 
