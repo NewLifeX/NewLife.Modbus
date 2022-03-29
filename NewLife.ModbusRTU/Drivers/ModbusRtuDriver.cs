@@ -18,19 +18,20 @@ public class ModbusRtuDriver : ModbusDriver, IDriver
     /// <returns></returns>
     protected override Modbus CreateModbus(IChannel channel, IDictionary<String, Object> parameters)
     {
-        var portName = parameters["PortName"] as String ?? parameters["Address"] as String;
-        if (portName.IsNullOrEmpty()) throw new ArgumentException("参数中未指定地址address");
+        //var portName = parameter.PortName ?? parameter.Address;
+        //if (portName.IsNullOrEmpty()) throw new ArgumentException("参数中未指定地址address");
 
-        var baudrate = parameters["Baudrate"].ToInt();
-        if (baudrate <= 0) baudrate = 9600;
+        //var baudrate = parameter.Baudrate;
+        //if (baudrate <= 0) baudrate = 9600;
 
         var modbus = new ModbusRtu
         {
-            PortName = portName,
-            Baudrate = baudrate,
+            //PortName = portName,
+            //Baudrate = baudrate,
             Tracer = Tracer,
             Log = Log,
         };
+        modbus.Init(parameters);
 
         return modbus;
     }

@@ -2,6 +2,7 @@
 using NewLife.IoT.ThingModels;
 using NewLife.IoT.ThingSpecification;
 using NewLife.Log;
+using NewLife.Serialization;
 
 namespace NewLife.IoT.Drivers;
 
@@ -48,11 +49,13 @@ public abstract class ModbusDriver : DisposeBase
     /// <returns></returns>
     public virtual INode Open(IChannel channel, IDictionary<String, Object> parameters)
     {
+        var p = JsonHelper.Convert<ModbusParameter>(parameters);
+
         var node = new ModbusNode
         {
-            Host = (Byte)parameters["host"],
-            ReadCode = (FunctionCodes)parameters["ReadFunctionCode"],
-            WriteCode = (FunctionCodes)parameters["WriteFunctionCode"],
+            Host = p.Host,
+            ReadCode = p.ReadCode,
+            WriteCode = p.WriteCode,
             Channel = channel
         };
 
@@ -65,9 +68,11 @@ public abstract class ModbusDriver : DisposeBase
                 {
                     var modbus = CreateModbus(channel, parameters);
 
-                    modbus.Open();
+                    // 外部已指定通道时，打开连接
+                    if (channel != null) modbus.Open();
 
                     _modbus = modbus;
+                    node.Modbus = modbus;
                 }
             }
         }
@@ -105,19 +110,6 @@ public abstract class ModbusDriver : DisposeBase
         {
             var n = node as ModbusNode;
             var dic = new Dictionary<String, Object>();
-            //foreach (var p in points)
-            //{
-            //    var addr = GetAddress(p);
-            //    var count = GetCount(p);
-            //    if (addr != UInt16.MaxValue)
-            //    {
-            //        var buf = _modbus.Read(n.ReadCode, n.Host, addr, (UInt16)count);
-
-            //        // 这里可以点位信息解析数据，如果直接返回字节数组，设备通道将使用表达式解析
-
-            //        dic[p.Name] = buf;
-            //    }
-            //}
 
             // 组合多个片段，减少读取次数
             var list = new List<Segment>();

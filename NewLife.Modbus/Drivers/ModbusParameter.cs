@@ -2,14 +2,9 @@
 
 namespace NewLife.IoT.Drivers;
 
-/// <summary>
-/// Modbus节点
-/// </summary>
-public class ModbusNode : INode
+/// <summary>Modbus参数</summary>
+public class ModbusParameter
 {
-    /// <summary>Modbus对象</summary>
-    public Modbus Modbus { get; set; }
-
     /// <summary>主机地址</summary>
     public Byte Host { get; set; }
 
@@ -19,6 +14,12 @@ public class ModbusNode : INode
     /// <summary>写入功能码</summary>
     public FunctionCodes WriteCode { get; set; }
 
-    /// <summary>通道</summary>
-    public IChannel Channel { get; set; }
+    /// <summary>地址</summary>
+    public String Address { get; set; }
+
+    /// <summary>串口</summary>
+    public String PortName { get; set; }
+
+    /// <summary>波特率</summary>
+    public Int32 Baudrate { get; set; }
 }

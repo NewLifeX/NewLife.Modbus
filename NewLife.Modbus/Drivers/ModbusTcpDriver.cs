@@ -17,15 +17,16 @@ public class ModbusTcpDriver : ModbusDriver, IDriver
     /// <returns></returns>
     protected override Modbus CreateModbus(IChannel channel, IDictionary<String, Object> parameters)
     {
-        var address = parameters["Address"] as String;
-        if (address.IsNullOrEmpty()) throw new ArgumentException("参数中未指定地址address");
+        //var address = parameter.Address;
+        //if (address.IsNullOrEmpty()) throw new ArgumentException("参数中未指定地址address");
 
         var modbus = new ModbusTcp
         {
-            Server = address,
+            //Server = address,
             Tracer = Tracer,
             Log = Log,
         };
+        modbus.Init(parameters);
 
         return modbus;
     }

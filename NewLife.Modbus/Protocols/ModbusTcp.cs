@@ -47,7 +47,7 @@ public class ModbusTcp : Modbus
     {
         if (parameters.TryGetValue("Server", out var str))
             Server = str + "";
-        else if (parameters.TryGetValue("Address", out str))
+        if (Server.IsNullOrEmpty() && parameters.TryGetValue("Address", out str))
             Server = str + "";
 
         if (parameters.TryGetValue("ProtocolId", out str)) ProtocolId = (UInt16)str.ToInt();
@@ -58,6 +58,8 @@ public class ModbusTcp : Modbus
     {
         if (_client == null || !_client.Connected)
         {
+            if (Server.IsNullOrEmpty()) throw new Exception("ModbusTcp未指定服务端地址Server");
+
             var uri = new NetUri(Server);
             if (uri.Port == 0) uri.Port = 502;
 

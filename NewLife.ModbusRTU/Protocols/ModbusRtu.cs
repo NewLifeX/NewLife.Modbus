@@ -44,7 +44,7 @@ namespace NewLife.Serial.Protocols
         {
             if (parameters.TryGetValue("PortName", out var str))
                 PortName = str + "";
-            else if (parameters.TryGetValue("Address", out str))
+            if (PortName.IsNullOrEmpty() && parameters.TryGetValue("Address", out str))
                 PortName = str + "";
 
             if (parameters.TryGetValue("Baudrate", out str)) Baudrate = str.ToInt();
