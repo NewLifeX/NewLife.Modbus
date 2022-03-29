@@ -196,10 +196,10 @@ public abstract class ModbusDriver : DisposeBase
         // 去掉冒号后面的位域
         var addr = point.Address;
         var p = addr.IndexOf(':');
-        if (p > 0) addr = addr[..p];
+        if (p > 0) addr = addr.Substring(0, p);
 
         // 按十六进制解析返回
-        if (addr.StartsWithIgnoreCase("0x")) return addr[2..].ToHex().ToUInt16(0, false);
+        if (addr.StartsWithIgnoreCase("0x")) return addr.Substring(2).ToHex().ToUInt16(0, false);
 
         // 直接转数字范围
         return (UInt16)addr.ToInt(UInt16.MaxValue);
