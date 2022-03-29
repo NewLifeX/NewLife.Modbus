@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;netstandard2.0;net4.0;net4.5</TargetFrameworks>
-    <RootNamespace>NewLife.IoT</RootNamespace>
+    <RootNamespace>NewLife.Serial</RootNamespace>
     <AssemblyTitle>ModbusRTU协议</AssemblyTitle>
     <Description>串口ModbusRTU协议</Description>
     <Company>新生命开发团队</Company>
