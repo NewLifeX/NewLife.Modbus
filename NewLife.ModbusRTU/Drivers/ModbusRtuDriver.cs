@@ -1,7 +1,8 @@
 ﻿using NewLife.IoT.Drivers;
 using NewLife.IoT.Protocols;
+using NewLife.Serial.Protocols;
 
-namespace NewLife.Serial.Protocols;
+namespace NewLife.Serial.Drivers;
 
 /// <summary>
 /// ModbusRtu协议封装

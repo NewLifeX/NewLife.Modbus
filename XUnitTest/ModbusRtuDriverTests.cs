@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NewLife.IoT.Drivers;
 using NewLife.IoT.Protocols;
+using NewLife.Serial.Drivers;
 using NewLife.Serial.Protocols;
 using Xunit;
 
