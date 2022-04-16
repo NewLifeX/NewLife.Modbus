@@ -157,7 +157,7 @@ public abstract class ModbusDriver : DisposeBase
                     if (seg != null && seg.Data != null)
                     {
                         // 校验数据完整性
-                        var offset = addr - seg.Address;
+                        var offset = (addr - seg.Address) * 2;
                         var size = count * 2;
                         if (seg.Data.Length >= offset + size)
                             dic[p.Name] = seg.Data.ReadBytes(offset, size);
@@ -205,21 +205,10 @@ public abstract class ModbusDriver : DisposeBase
     public virtual Int32 GetCount(IPoint point)
     {
         // 字节数转寄存器数，要除以2
-        var count = point.Length / 2;
+        var count = point.GetLength() / 2;
         if (count > 0) return count;
 
-        if (point.Type.IsNullOrEmpty()) return 1;
-
-        return point.Type.ToLower() switch
-        {
-            "byte" or "sbyte" or "bool" => 1,
-            "short" or "ushort" or "int16" or "uint16" => 2 / 2,
-            "int" or "uint" or "int32" or "uint32" => 4 / 2,
-            "long" or "ulong" or "int64" or "uint64" => 8 / 2,
-            "float" or "single" => 4 / 2,
-            "double" or "decimal" => 8 / 2,
-            _ => 1,
-        };
+        return 1;
     }
 
     /// <summary>
