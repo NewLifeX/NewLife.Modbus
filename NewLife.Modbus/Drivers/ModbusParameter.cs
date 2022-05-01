@@ -3,7 +3,7 @@
 namespace NewLife.IoT.Drivers;
 
 /// <summary>Modbus参数</summary>
-public class ModbusParameter
+public class ModbusParameter : IDriverParameter
 {
     /// <summary>主机地址</summary>
     public Byte Host { get; set; }
@@ -17,8 +17,8 @@ public class ModbusParameter
     /// <summary>地址</summary>
     public String Address { get; set; }
 
-    /// <summary>串口</summary>
-    public String PortName { get; set; }
+    ///// <summary>串口</summary>
+    //public String PortName { get; set; }
 
     /// <summary>波特率</summary>
     public Int32 Baudrate { get; set; }

@@ -33,7 +33,7 @@ namespace XUnitTest
             Assert.Equal(p.Host, node2.Host);
             Assert.Equal(p.ReadCode, node2.ReadCode);
             Assert.Equal(p.WriteCode, node2.WriteCode);
-            Assert.Null(node2.Channel);
+            Assert.Null(node2.Device);
 
             var modbus = node2.Modbus as ModbusTcp;
             Assert.NotNull(modbus);

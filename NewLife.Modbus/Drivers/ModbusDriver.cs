@@ -9,7 +9,7 @@ namespace NewLife.IoT.Drivers;
 /// <summary>
 /// Modbus协议封装
 /// </summary>
-public abstract class ModbusDriver : DisposeBase
+public abstract class ModbusDriver : DisposeBase, IDriver
 {
     /// <summary>
     /// Modbus通道
@@ -34,20 +34,35 @@ public abstract class ModbusDriver : DisposeBase
 
     #region 方法
     /// <summary>
+    /// 创建驱动参数对象，可序列化成Xml/Json作为该协议的参数模板
+    /// </summary>
+    /// <returns></returns>
+    public IDriverParameter CreateParameter() => new ModbusParameter
+    {
+        Address = "COM1",
+        Baudrate = 9600,
+        //Address = "tcp://127.0.0.1:502",
+
+        Host = 1,
+        ReadCode = FunctionCodes.ReadRegister,
+        WriteCode = FunctionCodes.WriteRegister,
+    };
+
+    /// <summary>
     /// 创建Modbus通道
     /// </summary>
-    /// <param name="channel"></param>
+    /// <param name="device"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    protected abstract Modbus CreateModbus(IChannel channel, IDictionary<String, Object> parameters);
+    protected abstract Modbus CreateModbus(IDevice device, IDictionary<String, Object> parameters);
 
     /// <summary>
     /// 打开通道。一个ModbusTcp设备可能分为多个通道读取，需要共用Tcp连接，以不同节点区分
     /// </summary>
-    /// <param name="channel">通道</param>
+    /// <param name="device">通道</param>
     /// <param name="parameters">参数</param>
     /// <returns></returns>
-    public virtual INode Open(IChannel channel, IDictionary<String, Object> parameters)
+    public virtual INode Open(IDevice device, IDictionary<String, Object> parameters)
     {
         var p = JsonHelper.Convert<ModbusParameter>(parameters);
 
@@ -56,7 +71,10 @@ public abstract class ModbusDriver : DisposeBase
             Host = p.Host,
             ReadCode = p.ReadCode,
             WriteCode = p.WriteCode,
-            Channel = channel
+
+            Driver = this,
+            Device = device,
+            Parameter = p,
         };
 
         // 实例化一次Tcp连接
@@ -66,10 +84,10 @@ public abstract class ModbusDriver : DisposeBase
             {
                 if (_modbus == null)
                 {
-                    var modbus = CreateModbus(channel, parameters);
+                    var modbus = CreateModbus(device, parameters);
 
                     // 外部已指定通道时，打开连接
-                    if (channel != null) modbus.Open();
+                    if (device != null) modbus.Open();
 
                     _modbus = modbus;
                     node.Modbus = modbus;
@@ -236,7 +254,7 @@ public abstract class ModbusDriver : DisposeBase
         }
         else
         {
-            vs = ConvertToRegister(value, point, n.Channel?.Specification);
+            vs = ConvertToRegister(value, point, n.Device?.Specification);
 
             if (vs == null) throw new NotSupportedException($"点位[{point.Name}]不支持数据[{value}]");
         }

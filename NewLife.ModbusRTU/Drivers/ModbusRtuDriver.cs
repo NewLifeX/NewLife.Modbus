@@ -1,4 +1,5 @@
-﻿using NewLife.IoT.Drivers;
+﻿using NewLife.IoT;
+using NewLife.IoT.Drivers;
 using NewLife.IoT.Protocols;
 using NewLife.Serial.Protocols;
 
@@ -14,10 +15,10 @@ public class ModbusRtuDriver : ModbusDriver, IDriver
     /// <summary>
     /// 创建Modbus通道
     /// </summary>
-    /// <param name="channel"></param>
+    /// <param name="device"></param>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    protected override Modbus CreateModbus(IChannel channel, IDictionary<String, Object> parameters)
+    protected override Modbus CreateModbus(IDevice device, IDictionary<String, Object> parameters)
     {
         //var portName = parameter.PortName ?? parameter.Address;
         //if (portName.IsNullOrEmpty()) throw new ArgumentException("参数中未指定地址address");
