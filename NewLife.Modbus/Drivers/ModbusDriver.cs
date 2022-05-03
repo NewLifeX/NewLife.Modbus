@@ -9,7 +9,11 @@ namespace NewLife.IoT.Drivers;
 /// <summary>
 /// Modbus协议封装
 /// </summary>
+#if NETSTANDARD2_1_OR_GREATER
+public abstract class ModbusDriver : DisposeBase, IDriver, ILogFeature, ITracerFeature
+#else
 public abstract class ModbusDriver : DisposeBase, IDriver
+#endif
 {
     /// <summary>
     /// Modbus通道
@@ -123,7 +127,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver
         // 加锁，避免冲突
         lock (_modbus)
         {
-            // 整体读取
+            // 分段整体读取
             foreach (var seg in list)
             {
                 var code = seg.ReadCode > 0 ? seg.ReadCode : n.ReadCode;
@@ -139,12 +143,10 @@ public abstract class ModbusDriver : DisposeBase, IDriver
     {
         // 组合多个片段，减少读取次数
         var list = new List<Segment>();
-        foreach (var p in points)
+        foreach (var point in points)
         {
-            var addr = GetAddress(p);
-            var count = GetCount(p);
-            if (addr != UInt16.MaxValue)
-                list.Add(new Segment { Address = addr, Count = count });
+            if (ModbusAddress.TryParse(point.Address, out var maddr))
+                list.Add(new Segment { ReadCode = maddr.GetReadCode(), Address = maddr.Address, Count = GetCount(point) });
         }
         list = list.OrderBy(e => e.Address).ThenByDescending(e => e.Count).ToList();
 
@@ -155,7 +157,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver
             var cur = list[i];
 
             // 前一段末尾碰到了当前段开始，可以合并
-            if (prv.Address + prv.Count >= cur.Address)
+            if (prv.Address + prv.Count >= cur.Address && prv.ReadCode == cur.ReadCode)
             {
                 // 要注意，可能前后重叠，也可能前面区域比后面还大
                 var size = cur.Address + cur.Count - prv.Address;
@@ -171,21 +173,23 @@ public abstract class ModbusDriver : DisposeBase, IDriver
     private IDictionary<String, Object> Dispatch(IPoint[] points, IList<Segment> segments)
     {
         var dic = new Dictionary<String, Object>();
-        foreach (var p in points)
+        if (segments == null || segments.Count == 0) return dic;
+
+        foreach (var point in points)
         {
-            var addr = GetAddress(p);
-            var count = GetCount(p);
-            if (addr != UInt16.MaxValue)
+            if (ModbusAddress.TryParse(point.Address, out var maddr))
             {
+                var count = GetCount(point);
+
                 // 找到片段
-                var seg = segments.FirstOrDefault(e => e.Address <= addr && addr + count <= e.Address + e.Count);
+                var seg = segments.FirstOrDefault(e => e.Address <= maddr.Address && maddr.Address + count <= e.Address + e.Count);
                 if (seg != null && seg.Data != null)
                 {
                     // 校验数据完整性
-                    var offset = (addr - seg.Address) * 2;
+                    var offset = (maddr.Address - seg.Address) * 2;
                     var size = count * 2;
                     if (seg.Data.Length >= offset + size)
-                        dic[p.Name] = seg.Data.ReadBytes(offset, size);
+                        dic[point.Name] = seg.Data.ReadBytes(offset, size);
                 }
             }
         }
@@ -198,27 +202,6 @@ public abstract class ModbusDriver : DisposeBase, IDriver
         public Int32 Address { get; set; }
         public Int32 Count { get; set; }
         public Byte[] Data { get; set; }
-    }
-
-    /// <summary>
-    /// 从点位中解析地址
-    /// </summary>
-    /// <param name="point"></param>
-    /// <returns></returns>
-    public virtual UInt16 GetAddress(IPoint point)
-    {
-        if (point == null) return UInt16.MaxValue;
-
-        // 去掉冒号后面的位域
-        var addr = point.Address;
-        var p = addr.IndexOf(':');
-        if (p > 0) addr = addr.Substring(0, p);
-
-        // 按十六进制解析返回
-        if (addr.StartsWithIgnoreCase("0x")) return addr.Substring(2).ToHex().ToUInt16(0, false);
-
-        // 直接转数字范围
-        return (UInt16)addr.ToInt(UInt16.MaxValue);
     }
 
     /// <summary>
@@ -243,10 +226,8 @@ public abstract class ModbusDriver : DisposeBase, IDriver
     /// <param name="value">数值</param>
     public virtual Object Write(INode node, IPoint point, Object value)
     {
-        var addr = GetAddress(point);
-        if (addr == UInt16.MaxValue) return null;
-
         if (value == null) return null;
+        if (!ModbusAddress.TryParse(point.Address, out var maddr)) return null;
 
         var n = node as ModbusNode;
         UInt16[] vs;
@@ -268,7 +249,9 @@ public abstract class ModbusDriver : DisposeBase, IDriver
         // 加锁，避免冲突
         lock (_modbus)
         {
-            return _modbus.Write(n.WriteCode, n.Host, addr, vs);
+            var code = maddr.GetWriteCode();
+            if (code == 0) code = n.WriteCode;
+            return _modbus.Write(code, n.Host, maddr.Address, vs);
         }
     }
 
