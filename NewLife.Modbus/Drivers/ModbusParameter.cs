@@ -13,13 +13,4 @@ public class ModbusParameter : IDriverParameter
 
     /// <summary>写入功能码。若点位地址未指定区域，则采用该功能码</summary>
     public FunctionCodes WriteCode { get; set; }
-
-    /// <summary>地址。串口或tcp地址</summary>
-    public String Address { get; set; }
-
-    ///// <summary>串口</summary>
-    //public String PortName { get; set; }
-
-    /// <summary>波特率</summary>
-    public Int32 Baudrate { get; set; }
 }

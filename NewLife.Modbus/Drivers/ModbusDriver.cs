@@ -37,24 +37,16 @@ public abstract class ModbusDriver : DisposeBase, IDriver
     /// 创建驱动参数对象，可序列化成Xml/Json作为该协议的参数模板
     /// </summary>
     /// <returns></returns>
-    public IDriverParameter CreateParameter() => new ModbusParameter
-    {
-        Address = "COM1",
-        Baudrate = 9600,
-        //Address = "tcp://127.0.0.1:502",
-
-        Host = 1,
-        ReadCode = FunctionCodes.ReadRegister,
-        WriteCode = FunctionCodes.WriteRegister,
-    };
+    public abstract IDriverParameter CreateParameter();
 
     /// <summary>
     /// 创建Modbus通道
     /// </summary>
-    /// <param name="device"></param>
-    /// <param name="parameters"></param>
+    /// <param name="device">逻辑设备</param>
+    /// <param name="node">设备节点</param>
+    /// <param name="parameters">参数</param>
     /// <returns></returns>
-    protected abstract Modbus CreateModbus(IDevice device, IDictionary<String, Object> parameters);
+    protected abstract Modbus CreateModbus(IDevice device, ModbusNode node, IDictionary<String, Object> parameters);
 
     /// <summary>
     /// 打开通道。一个ModbusTcp设备可能分为多个通道读取，需要共用Tcp连接，以不同节点区分
@@ -84,7 +76,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver
             {
                 if (_modbus == null)
                 {
-                    var modbus = CreateModbus(device, parameters);
+                    var modbus = CreateModbus(device, node, parameters);
 
                     // 外部已指定通道时，打开连接
                     if (device != null) modbus.Open();
@@ -134,7 +126,8 @@ public abstract class ModbusDriver : DisposeBase, IDriver
             // 整体读取
             foreach (var seg in list)
             {
-                seg.Data = _modbus.Read(n.ReadCode, n.Host, (UInt16)seg.Address, (UInt16)seg.Count);
+                var code = seg.ReadCode > 0 ? seg.ReadCode : n.ReadCode;
+                seg.Data = _modbus.Read(code, n.Host, (UInt16)seg.Address, (UInt16)seg.Count);
             }
         }
 
@@ -201,6 +194,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver
 
     private class Segment
     {
+        public FunctionCodes ReadCode { get; set; }
         public Int32 Address { get; set; }
         public Int32 Count { get; set; }
         public Byte[] Data { get; set; }

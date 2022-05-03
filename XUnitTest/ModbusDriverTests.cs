@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NewLife.IoT.Drivers;
 using NewLife.IoT.Protocols;
 using Xunit;
@@ -16,12 +13,12 @@ namespace XUnitTest
         {
             var driver = new ModbusTcpDriver();
 
-            var p = new ModbusParameter
+            var p = new ModbusTcpParameter
             {
                 Host = 3,
                 ReadCode = FunctionCodes.ReadRegister,
                 WriteCode = FunctionCodes.WriteRegister,
-                Address = "tcp://localhost:502",
+                Server = "tcp://localhost:502",
             };
             var dic = p.ToDictionary();
 

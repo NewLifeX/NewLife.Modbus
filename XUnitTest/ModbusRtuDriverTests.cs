@@ -18,12 +18,12 @@ namespace XUnitTest
         {
             var driver = new ModbusRtuDriver();
 
-            var p = new ModbusParameter
+            var p = new ModbusRtuParameter
             {
                 Host = 3,
                 ReadCode = FunctionCodes.ReadRegister,
                 WriteCode = FunctionCodes.WriteRegister,
-                Address = "COM1",
+                PortName = "COM1",
             };
             var dic = p.ToDictionary();
 
@@ -39,7 +39,8 @@ namespace XUnitTest
 
             var modbus = node2.Modbus as ModbusRtu;
             Assert.NotNull(modbus);
-            Assert.Equal(p.Address, modbus.PortName);
+            Assert.Equal(p.PortName, modbus.PortName);
+            Assert.Equal(9600, modbus.Baudrate);
         }
     }
 }

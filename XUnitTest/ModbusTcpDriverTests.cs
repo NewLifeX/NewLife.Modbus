@@ -35,12 +35,12 @@ namespace XUnitTest
         {
             var driver = new ModbusTcpDriver();
 
-            var p = new ModbusParameter
+            var p = new ModbusTcpParameter
             {
                 Host = 3,
                 ReadCode = FunctionCodes.ReadRegister,
                 WriteCode = FunctionCodes.WriteRegister,
-                Address = "tcp://localhost:1502",
+                Server = "tcp://localhost:1502",
             };
             var dic = p.ToDictionary();
 
@@ -56,7 +56,7 @@ namespace XUnitTest
 
             var modbus = node2.Modbus as ModbusTcp;
             Assert.NotNull(modbus);
-            Assert.Equal(p.Address, modbus.Server);
+            Assert.Equal(p.Server, modbus.Server);
         }
 
         [Fact]
@@ -64,12 +64,12 @@ namespace XUnitTest
         {
             var driver = new ModbusTcpDriver();
 
-            var p = new ModbusParameter
+            var p = new ModbusTcpParameter
             {
                 Host = 3,
                 ReadCode = FunctionCodes.ReadRegister,
                 WriteCode = FunctionCodes.WriteRegister,
-                Address = "tcp://localhost:1502",
+                Server = "tcp://localhost:1502",
             };
 
             var node = driver.Open(null, p);
@@ -84,7 +84,7 @@ namespace XUnitTest
 
             var modbus = node2.Modbus as ModbusTcp;
             Assert.NotNull(modbus);
-            Assert.Equal(p.Address, modbus.Server);
+            Assert.Equal(p.Server, modbus.Server);
         }
     }
 }
