@@ -61,6 +61,7 @@ public class ModbusTcp : Modbus
             if (Server.IsNullOrEmpty()) throw new Exception("ModbusTcp未指定服务端地址Server");
 
             var uri = new NetUri(Server);
+            if (uri.Type <= 0) uri.Type = NetType.Tcp;
             if (uri.Port == 0) uri.Port = 502;
 
             var client = new TcpClient
@@ -73,7 +74,7 @@ public class ModbusTcp : Modbus
             _client = client;
             _stream = client.GetStream();
 
-            WriteLog("ModbusTcp.Open {0}:{1}", uri.Host, uri.Port);
+            WriteLog("ModbusTcp.Open {0}", uri);
         }
     }
 
