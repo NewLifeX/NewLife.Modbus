@@ -123,68 +123,80 @@ public abstract class ModbusDriver : DisposeBase, IDriver
     {
         if (points == null || points.Length == 0) return null;
 
+        var n = node as ModbusNode;
+
+        // 组合多个片段，减少读取次数
+        var list = BuildSegments(points);
+
         // 加锁，避免冲突
         lock (_modbus)
         {
-            var n = node as ModbusNode;
-            var dic = new Dictionary<String, Object>();
-
-            // 组合多个片段，减少读取次数
-            var list = new List<Segment>();
-            foreach (var p in points)
-            {
-                var addr = GetAddress(p);
-                var count = GetCount(p);
-                if (addr != UInt16.MaxValue)
-                    list.Add(new Segment { Address = addr, Count = count });
-            }
-            list = list.OrderBy(e => e.Address).ThenByDescending(e => e.Count).ToList();
-
-            // 逆向合并，减少拷贝
-            for (var i = list.Count - 1; i > 0; i--)
-            {
-                var prv = list[i - 1];
-                var cur = list[i];
-
-                // 前一段末尾碰到了当前段开始，可以合并
-                if (prv.Address + prv.Count >= cur.Address)
-                {
-                    // 要注意，可能前后重叠，也可能前面区域比后面还大
-                    var size = cur.Address + cur.Count - prv.Address;
-                    if (size > prv.Count) prv.Count = size;
-
-                    list.RemoveAt(i);
-                }
-            }
-
             // 整体读取
             foreach (var seg in list)
             {
                 seg.Data = _modbus.Read(n.ReadCode, n.Host, (UInt16)seg.Address, (UInt16)seg.Count);
             }
+        }
 
-            // 分赃
-            foreach (var p in points)
+        // 分割数据
+        return Dispatch(points, list);
+    }
+
+    private IList<Segment> BuildSegments(IPoint[] points)
+    {
+        // 组合多个片段，减少读取次数
+        var list = new List<Segment>();
+        foreach (var p in points)
+        {
+            var addr = GetAddress(p);
+            var count = GetCount(p);
+            if (addr != UInt16.MaxValue)
+                list.Add(new Segment { Address = addr, Count = count });
+        }
+        list = list.OrderBy(e => e.Address).ThenByDescending(e => e.Count).ToList();
+
+        // 逆向合并，减少拷贝
+        for (var i = list.Count - 1; i > 0; i--)
+        {
+            var prv = list[i - 1];
+            var cur = list[i];
+
+            // 前一段末尾碰到了当前段开始，可以合并
+            if (prv.Address + prv.Count >= cur.Address)
             {
-                var addr = GetAddress(p);
-                var count = GetCount(p);
-                if (addr != UInt16.MaxValue)
+                // 要注意，可能前后重叠，也可能前面区域比后面还大
+                var size = cur.Address + cur.Count - prv.Address;
+                if (size > prv.Count) prv.Count = size;
+
+                list.RemoveAt(i);
+            }
+        }
+
+        return list;
+    }
+
+    private IDictionary<String, Object> Dispatch(IPoint[] points, IList<Segment> segments)
+    {
+        var dic = new Dictionary<String, Object>();
+        foreach (var p in points)
+        {
+            var addr = GetAddress(p);
+            var count = GetCount(p);
+            if (addr != UInt16.MaxValue)
+            {
+                // 找到片段
+                var seg = segments.FirstOrDefault(e => e.Address <= addr && addr + count <= e.Address + e.Count);
+                if (seg != null && seg.Data != null)
                 {
-                    // 找到片段
-                    var seg = list.FirstOrDefault(e => e.Address <= addr && addr + count <= e.Address + e.Count);
-                    if (seg != null && seg.Data != null)
-                    {
-                        // 校验数据完整性
-                        var offset = (addr - seg.Address) * 2;
-                        var size = count * 2;
-                        if (seg.Data.Length >= offset + size)
-                            dic[p.Name] = seg.Data.ReadBytes(offset, size);
-                    }
+                    // 校验数据完整性
+                    var offset = (addr - seg.Address) * 2;
+                    var size = count * 2;
+                    if (seg.Data.Length >= offset + size)
+                        dic[p.Name] = seg.Data.ReadBytes(offset, size);
                 }
             }
-
-            return dic;
         }
+        return dic;
     }
 
     private class Segment
