@@ -37,7 +37,7 @@ public class ModbusRtuDriver : ModbusDriver, IDriver
     protected override Modbus CreateModbus(IDevice device, ModbusNode node, IDictionary<String, Object> parameters)
     {
         var p = JsonHelper.Convert<ModbusRtuParameter>(parameters);
-        if (p.PortName.IsNullOrEmpty()) throw new ArgumentException("参数中未指定地址address");
+        if (p.PortName.IsNullOrEmpty()) throw new ArgumentException("参数中未指定端口PortName");
 
         if (p.Baudrate <= 0) p.Baudrate = 9600;
 
