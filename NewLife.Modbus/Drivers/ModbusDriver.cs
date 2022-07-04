@@ -148,7 +148,14 @@ public abstract class ModbusDriver : DisposeBase, IDriver
         foreach (var point in points)
         {
             if (ModbusAddress.TryParse(point.Address, out var maddr))
-                list.Add(new Segment { ReadCode = maddr.GetReadCode(), Address = maddr.Address, Count = GetCount(point) });
+            {
+                list.Add(new Segment
+                {
+                    ReadCode = maddr.GetReadCode(),
+                    Address = maddr.Address,
+                    Count = GetCount(point)
+                });
+            }
         }
         list = list.OrderBy(e => e.Address).ThenByDescending(e => e.Count).ToList();
 
