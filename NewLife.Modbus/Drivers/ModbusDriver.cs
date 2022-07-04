@@ -132,8 +132,9 @@ public abstract class ModbusDriver : DisposeBase, IDriver
             // 分段整体读取
             foreach (var seg in list)
             {
-                var code = seg.ReadCode > 0 ? seg.ReadCode : n.ReadCode;
-                seg.Data = _modbus.Read(code, n.Host, (UInt16)seg.Address, (UInt16)seg.Count);
+                //var code = seg.ReadCode > 0 ? seg.ReadCode : n.ReadCode;
+                if (seg.ReadCode == 0) seg.ReadCode = n.ReadCode;
+                seg.Data = _modbus.Read(seg.ReadCode, n.Host, (UInt16)seg.Address, (UInt16)seg.Count);
             }
         }
 
@@ -161,6 +162,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver
 
         // 只有读寄存器合并，其它指令合并可能有问题，将来再优化
         if (!merge) return list;
+        //if (list.Any(e => e.ReadCode != FunctionCodes.ReadRegister && e.ReadCode != FunctionCodes.ReadInput)) return list;
 
         // 逆向合并，减少拷贝
         for (var i = list.Count - 1; i > 0; i--)
@@ -197,11 +199,26 @@ public abstract class ModbusDriver : DisposeBase, IDriver
                 var seg = segments.FirstOrDefault(e => e.Address <= maddr.Address && maddr.Address + count <= e.Address + e.Count);
                 if (seg != null && seg.Data != null)
                 {
-                    // 校验数据完整性
-                    var offset = (maddr.Address - seg.Address) * 2;
-                    var size = count * 2;
-                    if (seg.Data.Length >= offset + size)
-                        dic[point.Name] = seg.Data.ReadBytes(offset, size);
+                    var code = seg.ReadCode;
+                    if (code == FunctionCodes.ReadRegister || code == FunctionCodes.ReadInput)
+                    {
+                        // 校验数据完整性
+                        var offset = (maddr.Address - seg.Address) * 2;
+                        var size = count * 2;
+                        if (seg.Data.Length >= offset + size)
+                            dic[point.Name] = seg.Data.ReadBytes(offset, size);
+                    }
+                    else if (code == FunctionCodes.ReadCoil || code == FunctionCodes.ReadDiscrete)
+                    {
+                        // 计算偏移，每8位一个字节，地址低3位是该字节内的偏移量
+                        var offset = maddr.Address - seg.Address;
+                        var idx = offset >> 3;
+                        offset &= 0x07;
+                        if (seg.Data.Length >= idx)
+                            dic[point.Name] = (seg.Data[idx] >> offset) & 0x01;
+                    }
+                    else
+                        throw new NotSupportedException($"无法拆分{code}");
                 }
             }
         }
