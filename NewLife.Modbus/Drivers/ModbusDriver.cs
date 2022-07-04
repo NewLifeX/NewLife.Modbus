@@ -123,8 +123,8 @@ public abstract class ModbusDriver : DisposeBase, IDriver
         var p = node.Parameter as ModbusParameter;
 
         // 组合多个片段，减少读取次数
-        var merge = p != null && (p.ReadCode == FunctionCodes.ReadRegister || p.ReadCode == FunctionCodes.ReadInput);
-        var list = BuildSegments(points, merge);
+        //var merge = p != null && (p.ReadCode == FunctionCodes.ReadRegister || p.ReadCode == FunctionCodes.ReadInput);
+        var list = BuildSegments(points);
 
         // 加锁，避免冲突
         lock (_modbus)
@@ -142,7 +142,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver
         return Dispatch(points, list);
     }
 
-    private IList<Segment> BuildSegments(IPoint[] points, Boolean merge)
+    private IList<Segment> BuildSegments(IPoint[] points)
     {
         // 组合多个片段，减少读取次数
         var list = new List<Segment>();
@@ -160,8 +160,8 @@ public abstract class ModbusDriver : DisposeBase, IDriver
         }
         list = list.OrderBy(e => e.Address).ThenByDescending(e => e.Count).ToList();
 
-        // 只有读寄存器合并，其它指令合并可能有问题，将来再优化
-        if (!merge) return list;
+        //// 只有读寄存器合并，其它指令合并可能有问题，将来再优化
+        //if (!merge) return list;
         //if (list.Any(e => e.ReadCode != FunctionCodes.ReadRegister && e.ReadCode != FunctionCodes.ReadInput)) return list;
 
         // 逆向合并，减少拷贝
