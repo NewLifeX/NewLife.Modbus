@@ -158,7 +158,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver
                 });
             }
         }
-        list = list.OrderBy(e => e.Address).ThenByDescending(e => e.Count).ToList();
+        list = list.OrderBy(e => e.ReadCode).ThenBy(e => e.Address).ThenByDescending(e => e.Count).ToList();
 
         //// 只有读寄存器合并，其它指令合并可能有问题，将来再优化
         //if (!merge) return list;
