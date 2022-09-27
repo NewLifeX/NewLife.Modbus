@@ -17,4 +17,12 @@ public class ModbusParameter : IDriverParameter
     /// <summary>写入功能码。若点位地址未指定区域，则采用该功能码</summary>
     [Description("写入功能码。若点位地址未指定区域，则采用该功能码")]
     public FunctionCodes WriteCode { get; set; }
+
+    /// <summary>批大小。凑批请求时，每批最多点位个数</summary>
+    [Description("批大小。凑批请求时，每批最多点位个数")]
+    public Int32 BatchSize { get; set; }
+
+    /// <summary>延迟。相邻请求之间的延迟时间，单位毫秒</summary>
+    [Description("延迟。相邻请求之间的延迟时间，单位毫秒")]
+    public Int32 Delay { get; set; }
 }

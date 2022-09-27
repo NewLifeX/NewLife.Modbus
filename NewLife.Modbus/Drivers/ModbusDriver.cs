@@ -142,7 +142,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver
         return Dispatch(points, list);
     }
 
-    private IList<Segment> BuildSegments(IPoint[] points)
+    private IList<Segment> BuildSegments(IPoint[] points, ModbusParameter p)
     {
         // 组合多个片段，减少读取次数
         var list = new List<Segment>();
