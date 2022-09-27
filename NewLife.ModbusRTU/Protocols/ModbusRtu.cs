@@ -1,6 +1,11 @@
 ﻿using System.IO.Ports;
+using NewLife.Data;
 using NewLife.IoT.Protocols;
 using NewLife.Log;
+
+#if NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 
 namespace NewLife.Serial.Protocols;
 
@@ -16,9 +21,6 @@ public class ModbusRtu : Modbus
 
     /// <summary>字节超时。数据包间隔，默认20ms</summary>
     public Int32 ByteTimeout { get; set; } = 20;
-
-    /// <summary>缓冲区大小。默认256</summary>
-    public Int32 BufferSize { get; set; } = 256;
 
     private SerialPort _port;
     #endregion
@@ -57,8 +59,8 @@ public class ModbusRtu : Modbus
         {
             var p = new SerialPort(PortName, Baudrate)
             {
-                ReadTimeout = 3_000,
-                WriteTimeout = 3_000
+                ReadTimeout = Timeout,
+                WriteTimeout = Timeout
             };
             p.Open();
             _port = p;
@@ -76,6 +78,7 @@ public class ModbusRtu : Modbus
 
         {
             if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("=> {0}", message);
+
             var cmd = message.ToPacket();
             var buf = cmd.ToArray();
 
@@ -86,39 +89,58 @@ public class ModbusRtu : Modbus
             using var span = Tracer?.NewSpan("modbus:SendCommand", buf.ToHex("-"));
 
             if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("{0}=> {1}", PortName, buf.ToHex("-"));
+
             _port.Write(buf, 0, buf.Length);
+
             Thread.Sleep(10);
         }
 
         // 串口速度较慢，等待收完数据
         WaitMore(_port);
 
-        try
         {
             using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
-
+#if NETSTANDARD2_1_OR_GREATER
+            var buf = ArrayPool<Byte>.Shared.Rent(BufferSize);
+#else
             var buf = new Byte[BufferSize];
-            var c = _port.Read(buf, 0, buf.Length);
-            buf = buf.ReadBytes(0, c);
-            if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("{0}<= {1}", PortName, buf.ToHex("-"));
+#endif
+            try
+            {
+                var count = _port.Read(buf, 0, buf.Length);
+                var pk = new Packet(buf, 0, count);
+                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("{0}<= {1}", PortName, pk.ToHex(32, "-"));
 
-            if (span != null) span.Tag = buf.ToHex();
+                if (span != null) span.Tag = pk.ToHex();
 
-            if (buf.Length < 2 + 2) return null;
+                var len = pk.Total - 2;
+                if (len < 2) return null;
 
-            // 校验Crc
-            var crc = Crc(buf, 0, buf.Length - 2);
-            var crc2 = buf.ToUInt16(buf.Length - 2);
-            if (crc != crc2) WriteLog("Crc Error {0:X4}!={1:X4} !", crc, crc2);
+                // 校验Crc
+                var crc = Crc(buf, 0, len);
+                var crc2 = buf.ToUInt16(len);
+                if (crc != crc2) WriteLog("Crc Error {0:X4}!={1:X4} !", crc, crc2);
 
-            var rs = ModbusMessage.Read(buf, true);
-            if (rs == null) return null;
+                var rs = ModbusMessage.Read(pk, true);
+                if (rs == null) return null;
 
-            if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("<= {0}", rs);
+                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("<= {0}", rs);
 
-            return rs;
+                return rs;
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                if (ex is TimeoutException) return null;
+                throw;
+            }
+            finally
+            {
+#if NETSTANDARD2_1_OR_GREATER
+                ArrayPool<Byte>.Shared.Return(buf);
+#endif
+            }
         }
-        catch (TimeoutException) { return null; }
     }
 
     void WaitMore(SerialPort sp)

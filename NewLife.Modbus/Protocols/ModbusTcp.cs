@@ -1,6 +1,11 @@
 ﻿using System.Net.Sockets;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
+
+#if NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 
 namespace NewLife.IoT.Protocols;
 
@@ -16,9 +21,6 @@ public class ModbusTcp : Modbus
 
     /// <summary>协议标识。默认0</summary>
     public UInt16 ProtocolId { get; set; }
-
-    /// <summary>缓冲区大小。默认256</summary>
-    public Int32 BufferSize { get; set; } = 256;
 
     private Int32 _transactionId;
     private TcpClient _client;
@@ -66,8 +68,8 @@ public class ModbusTcp : Modbus
 
             var client = new TcpClient
             {
-                SendTimeout = 3_000,
-                ReceiveTimeout = 3_000
+                SendTimeout = Timeout,
+                ReceiveTimeout = Timeout
             };
             client.Connect(uri.Address, uri.Port);
 
@@ -94,9 +96,9 @@ public class ModbusTcp : Modbus
         Open();
 
         if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("=> {0}", message);
-        var cmd = message.ToPacket().ToArray();
 
         {
+            var cmd = message.ToPacket().ToArray();
             using var span = Tracer?.NewSpan("modbus:SendCommand", cmd.ToHex("-"));
             try
             {
@@ -109,27 +111,39 @@ public class ModbusTcp : Modbus
             }
         }
 
-        using var span2 = Tracer?.NewSpan("modbus:ReceiveCommand");
-        try
         {
+            using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
+#if NETSTANDARD2_1_OR_GREATER
+            var buf = ArrayPool<Byte>.Shared.Rent(BufferSize);
+#else
             var buf = new Byte[BufferSize];
-            var c = _stream.Read(buf, 0, buf.Length);
-            buf = buf.ReadBytes(0, c);
+#endif
+            try
+            {
+                var count = _stream.Read(buf, 0, buf.Length);
+                var pk = new Packet(buf, 0, count);
 
-            if (span2 != null) span2.Tag = buf.ToHex();
+                if (span != null) span.Tag = pk.ToHex();
 
-            var rs = ModbusTcpMessage.Read(buf, true);
-            if (rs == null) return null;
+                var rs = ModbusTcpMessage.Read(pk, true);
+                if (rs == null) return null;
 
-            if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("<= {0}", rs);
+                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("<= {0}", rs);
 
-            return rs;
-        }
-        catch (Exception ex)
-        {
-            span2?.SetError(ex, null);
-            if (ex is TimeoutException) return null;
-            throw;
+                return rs;
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                if (ex is TimeoutException) return null;
+                throw;
+            }
+            finally
+            {
+#if NETSTANDARD2_1_OR_GREATER
+                ArrayPool<Byte>.Shared.Return(buf);
+#endif
+            }
         }
     }
     #endregion

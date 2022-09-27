@@ -8,6 +8,12 @@ namespace NewLife.IoT.Protocols;
 public abstract class Modbus : DisposeBase
 {
     #region 属性
+    /// <summary>网络超时。发起请求后等待响应的超时时间，默认3000ms</summary>
+    public Int32 Timeout { get; set; } = 3000;
+
+    /// <summary>缓冲区大小。默认256</summary>
+    public Int32 BufferSize { get; set; } = 256;
+
     /// <summary>性能追踪器</summary>
     public ITracer Tracer { get; set; }
     #endregion
