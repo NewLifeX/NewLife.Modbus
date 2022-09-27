@@ -133,7 +133,16 @@ public abstract class ModbusDriver : DisposeBase, IDriver, ILogFeature, ITracerF
 
                 //var code = seg.ReadCode > 0 ? seg.ReadCode : n.ReadCode;
                 if (seg.ReadCode == 0) seg.ReadCode = n.ReadCode;
-                seg.Data = _modbus.Read(seg.ReadCode, n.Host, (UInt16)seg.Address, (UInt16)seg.Count);
+
+                // 其中一项读取报错时，直接跳过，不要影响其它批次
+                try
+                {
+                    seg.Data = _modbus.Read(seg.ReadCode, n.Host, (UInt16)seg.Address, (UInt16)seg.Count);
+                }
+                catch (Exception ex)
+                {
+                    Log?.Error(ex.ToString());
+                }
 
                 // 读取时延迟一点时间
                 if (i < list.Count - 1 && p.Delay > 0) Thread.Sleep(p.Delay);
