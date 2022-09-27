@@ -9,11 +9,7 @@ namespace NewLife.IoT.Drivers;
 /// <summary>
 /// Modbus协议封装
 /// </summary>
-#if NETSTANDARD2_1_OR_GREATER
 public abstract class ModbusDriver : DisposeBase, IDriver, ILogFeature, ITracerFeature
-#else
-public abstract class ModbusDriver : DisposeBase, IDriver
-#endif
 {
     /// <summary>
     /// Modbus通道
