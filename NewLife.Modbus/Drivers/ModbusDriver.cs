@@ -124,17 +124,22 @@ public abstract class ModbusDriver : DisposeBase, IDriver
 
         // 组合多个片段，减少读取次数
         //var merge = p != null && (p.ReadCode == FunctionCodes.ReadRegister || p.ReadCode == FunctionCodes.ReadInput);
-        var list = BuildSegments(points);
+        var list = BuildSegments(points, p);
 
         // 加锁，避免冲突
         lock (_modbus)
         {
             // 分段整体读取
-            foreach (var seg in list)
+            for (var i = 0; i < list.Count; i++)
             {
+                var seg = list[i];
+
                 //var code = seg.ReadCode > 0 ? seg.ReadCode : n.ReadCode;
                 if (seg.ReadCode == 0) seg.ReadCode = n.ReadCode;
                 seg.Data = _modbus.Read(seg.ReadCode, n.Host, (UInt16)seg.Address, (UInt16)seg.Count);
+
+                // 读取时延迟一点时间
+                if (i < list.Count - 1 && p.Delay > 0) Thread.Sleep(p.Delay);
             }
         }
 
@@ -165,6 +170,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver
         //if (list.Any(e => e.ReadCode != FunctionCodes.ReadRegister && e.ReadCode != FunctionCodes.ReadInput)) return list;
 
         // 逆向合并，减少拷贝
+        var k = 0;
         for (var i = list.Count - 1; i > 0; i--)
         {
             var prv = list[i - 1];
@@ -173,12 +179,22 @@ public abstract class ModbusDriver : DisposeBase, IDriver
             // 前一段末尾碰到了当前段开始，可以合并
             if (prv.Address + prv.Count >= cur.Address && prv.ReadCode == cur.ReadCode)
             {
-                // 要注意，可能前后重叠，也可能前面区域比后面还大
-                var size = cur.Address + cur.Count - prv.Address;
-                if (size > prv.Count) prv.Count = size;
+                if (p.BatchSize <= 0 || k < p.BatchSize)
+                {
+                    // 要注意，可能前后重叠，也可能前面区域比后面还大
+                    var size = cur.Address + cur.Count - prv.Address;
+                    if (size > prv.Count) prv.Count = size;
 
-                list.RemoveAt(i);
+                    list.RemoveAt(i);
+
+                    // 连续合并数累加
+                    k++;
+                }
+                else
+                    k = 0;
             }
+            else
+                k = 0;
         }
 
         return list;
