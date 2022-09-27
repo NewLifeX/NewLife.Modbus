@@ -77,7 +77,7 @@ public class ModbusRtu : Modbus
         Open();
 
         {
-            if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("=> {0}", message);
+            Log?.Debug("=> {0}", message);
 
             var cmd = message.ToPacket();
             var buf = cmd.ToArray();
@@ -88,7 +88,7 @@ public class ModbusRtu : Modbus
 
             using var span = Tracer?.NewSpan("modbus:SendCommand", buf.ToHex("-"));
 
-            if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("{0}=> {1}", PortName, buf.ToHex("-"));
+            Log?.Debug("{0}=> {1}", PortName, buf.ToHex("-"));
 
             _port.Write(buf, 0, buf.Length);
 
@@ -109,7 +109,7 @@ public class ModbusRtu : Modbus
             {
                 var count = _port.Read(buf, 0, buf.Length);
                 var pk = new Packet(buf, 0, count);
-                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("{0}<= {1}", PortName, pk.ToHex(32, "-"));
+                Log?.Debug("{0}<= {1}", PortName, pk.ToHex(32, "-"));
 
                 if (span != null) span.Tag = pk.ToHex();
 
@@ -124,7 +124,7 @@ public class ModbusRtu : Modbus
                 var rs = ModbusMessage.Read(pk, true);
                 if (rs == null) return null;
 
-                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("<= {0}", rs);
+                Log?.Debug("<= {0}", rs);
 
                 return rs;
             }

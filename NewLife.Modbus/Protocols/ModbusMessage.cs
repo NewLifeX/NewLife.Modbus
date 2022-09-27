@@ -34,7 +34,7 @@ public class ModbusMessage : IAccessor
     /// <returns></returns>
     public override String ToString()
     {
-        if (!Reply) return $"{Code} ({Address}, {Payload?.ToHex()})";
+        if (!Reply) return $"{Code} (0x{Address:X4}, {Payload?.ToHex()})";
 
         return $"{Code} {Payload?.ToHex()}";
     }

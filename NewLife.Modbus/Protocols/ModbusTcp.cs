@@ -95,10 +95,10 @@ public class ModbusTcp : Modbus
     {
         Open();
 
-        if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("=> {0}", message);
+        Log?.Debug("=> {0}", message);
 
-        // 剔除剩余未读取数据
-        if (_stream.DataAvailable) _stream.ReadBytes();
+        //// 剔除剩余未读取数据
+        //if (_stream.DataAvailable) _stream.ReadBytes();
 
         {
             var cmd = message.ToPacket().ToArray();
@@ -123,29 +123,40 @@ public class ModbusTcp : Modbus
 #endif
             try
             {
-                // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
-                var dataLength = 8;
-                var count = 0;
-                while (count < dataLength)
+                while (true)
                 {
-                    count += _stream.Read(buf, count, buf.Length - count);
+                    // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
+                    var dataLength = 8;
+                    var count = 0;
+                    while (count < dataLength)
+                    {
+                        count += _stream.Read(buf, count, buf.Length - count);
 
-                    // 已取得请求头，计算真实长度
-                    if (count >= 6) dataLength = buf.ToUInt16(4, false);
+                        // 已取得请求头，计算真实长度
+                        if (count >= 6) dataLength = buf.ToUInt16(4, false);
+                    }
+                    var pk = new Packet(buf, 0, count);
+
+                    if (span != null) span.Tag = pk.ToHex();
+
+                    var rs = ModbusTcpMessage.Read(pk, true);
+                    if (rs == null) return null;
+
+                    Log?.Debug("<= {0}", rs);
+
+                    // 检查事务标识
+                    if (message is ModbusTcpMessage mtm && mtm.TransactionId != rs.TransactionId)
+                    {
+                        WriteLog("TransactionId Error {0}!={1}", rs.TransactionId, mtm.TransactionId);
+
+                        // 读取到前一条，抛弃它，继续读取
+                        if (rs.TransactionId < mtm.TransactionId) continue;
+
+                        return null;
+                    }
+
+                    return rs;
                 }
-                var pk = new Packet(buf, 0, count);
-
-                if (span != null) span.Tag = pk.ToHex();
-
-                var rs = ModbusTcpMessage.Read(pk, true);
-                if (rs == null) return null;
-
-                // 检查事务标识
-                if (message is ModbusTcpMessage mtm && mtm.TransactionId != rs.TransactionId) return null;
-
-                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("<= {0}", rs);
-
-                return rs;
             }
             catch (Exception ex)
             {

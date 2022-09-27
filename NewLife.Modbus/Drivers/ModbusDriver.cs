@@ -77,6 +77,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver, ILogFeature, ITracerF
                 if (_modbus == null)
                 {
                     var modbus = CreateModbus(device, node, parameters);
+                    if (p.Timeout > 0) modbus.Timeout = p.Timeout;
 
                     // 外部已指定通道时，打开连接
                     if (device != null) modbus.Open();
