@@ -98,7 +98,7 @@ public class ModbusTcp : Modbus
         if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("=> {0}", message);
 
         // 剔除剩余未读取数据
-        if (_stream.DataAvailable) _stream.Seek(0, SeekOrigin.End);
+        if (_stream.DataAvailable) _stream.ReadBytes();
 
         {
             var cmd = message.ToPacket().ToArray();
