@@ -97,6 +97,9 @@ public class ModbusTcp : Modbus
 
         if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("=> {0}", message);
 
+        // 剔除剩余未读取数据
+        if (_stream.DataAvailable) _stream.Seek(0, SeekOrigin.End);
+
         {
             var cmd = message.ToPacket().ToArray();
             using var span = Tracer?.NewSpan("modbus:SendCommand", cmd.ToHex("-"));
@@ -120,13 +123,25 @@ public class ModbusTcp : Modbus
 #endif
             try
             {
-                var count = _stream.Read(buf, 0, buf.Length);
+                // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
+                var dataLength = 8;
+                var count = 0;
+                while (count < dataLength)
+                {
+                    count += _stream.Read(buf, count, buf.Length - count);
+
+                    // 已取得请求头，计算真实长度
+                    if (count >= 6) dataLength = buf.ToUInt16(4, false);
+                }
                 var pk = new Packet(buf, 0, count);
 
                 if (span != null) span.Tag = pk.ToHex();
 
                 var rs = ModbusTcpMessage.Read(pk, true);
                 if (rs == null) return null;
+
+                // 检查事务标识
+                if (message is ModbusTcpMessage mtm && mtm.TransactionId != rs.TransactionId) return null;
 
                 if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("<= {0}", rs);
 

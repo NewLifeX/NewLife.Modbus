@@ -40,50 +40,6 @@ public class ModbusMessage : IAccessor
     }
     #endregion
 
-    #region 快速方法
-    ///// <summary>设置地址和数据（数值/个数）</summary>
-    ///// <param name="address"></param>
-    ///// <param name="value"></param>
-    //public virtual void Set(UInt16 address, UInt16 value)
-    //{
-    //    var buf = new Byte[4];
-    //    buf.Write(address, 0, false);
-    //    buf.Write(value, 2, false);
-
-    //    Payload = buf;
-    //}
-
-    ///// <summary>获取地址和数据（数值/个数）</summary>
-    ///// <returns></returns>
-    //public virtual (UInt16 address, UInt16 value) Get()
-    //{
-    //    var buf = Payload?.ReadBytes(0, 4);
-    //    if (buf == null || buf.Length < 4) return (0, 0);
-
-    //    var addr = buf.ToUInt16(0, false);
-    //    var value = buf.ToUInt16(2, false);
-
-    //    return (addr, value);
-    //}
-
-    ///// <summary>获取地址和数据（数值/个数）</summary>
-    ///// <param name="address"></param>
-    ///// <param name="value"></param>
-    ///// <returns></returns>
-    //public virtual Boolean TryGet(out UInt16 address, out UInt16 value)
-    //{
-    //    address = value = 0;
-
-    //    var buf = Payload?.ReadBytes(0, 4);
-    //    if (buf == null || buf.Length < 4) return false;
-
-    //    address = buf.ToUInt16(0, false);
-    //    value = buf.ToUInt16(2, false);
-
-    //    return true;
-    //}
-    #endregion
-
     #region 方法
     /// <summary>读取</summary>
     /// <param name="stream"></param>
@@ -96,20 +52,20 @@ public class ModbusMessage : IAccessor
         Host = binary.ReadByte();
         Code = (FunctionCodes)binary.ReadByte();
 
-        var len = (Int32)(stream.Length - stream.Position);
-        if (len <= 0) return false;
+        var remain = (Int32)(stream.Length - stream.Position);
+        if (remain <= 0) return false;
 
         if (!Reply)
         {
             // 请求数据，地址和负载
             Address = binary.Read<UInt16>();
-            Payload = binary.ReadBytes(len - 2);
+            Payload = binary.ReadBytes(remain - 2);
         }
-        else if (len >= 1)
+        else if (remain >= 1)
         {
             // 响应数据，长度和负载
-            var len2 = binary.ReadByte();
-            if (len2 <= len - 1) Payload = binary.ReadBytes(len2);
+            var len = binary.ReadByte();
+            if (len <= remain - 1) Payload = binary.ReadBytes(len);
         }
 
         return true;

@@ -9,10 +9,10 @@ namespace NewLife.IoT.Protocols;
 public class ModbusTcpMessage : ModbusMessage
 {
     #region 属性
-    /// <summary>事务编号</summary>
+    /// <summary>事务元标识符。主要用于在主站设备在接收到响应时能知道是哪个请求的响应</summary>
     public UInt16 TransactionId { get; set; }
 
-    /// <summary>协议</summary>
+    /// <summary>协议标识符。对于MODBUS 协议来说，这里恒为0</summary>
     public UInt16 ProtocolId { get; set; }
     #endregion
 
@@ -29,7 +29,7 @@ public class ModbusTcpMessage : ModbusMessage
         ProtocolId = binary.Read<UInt16>();
 
         var len = binary.Read<UInt16>();
-        if (len < 1 + 1 + 1 || stream.Position + len > stream.Length) return false;
+        if (len < 1 + 1 || stream.Position + len > stream.Length) return false;
 
         return base.Read(stream, context ?? binary);
     }
@@ -66,15 +66,6 @@ public class ModbusTcpMessage : ModbusMessage
         binary.Write((UInt16)len);
 
         return base.Write(stream, context ?? binary);
-
-        //var ms = new MemoryStream();
-        //if (!base.Write(ms, null)) return false;
-
-        //var buf = ms.ToArray();
-        //binary.Write((Byte)buf.Length);
-        //binary.Write(buf, 0, buf.Length);
-
-        //return true;
     }
 
     /// <summary>创建响应</summary>
