@@ -18,11 +18,11 @@ public class ModbusMessage : IAccessor
     /// <summary>操作码</summary>
     public FunctionCodes Code { get; set; }
 
+    /// <summary>错误码</summary>
+    public ErrorCodes ErrorCode { get; set; }
+
     /// <summary>地址。请求数据，地址与负载；响应数据没有地址只有负载</summary>
     public UInt16 Address { get; set; }
-
-    ///// <summary>数据（数值/个数）。常用字段，优先Payload</summary>
-    //public UInt16 Value { get; set; }
 
     /// <summary>负载数据</summary>
     [IgnoreDataMember]
@@ -50,7 +50,16 @@ public class ModbusMessage : IAccessor
         var binary = context as Binary ?? new Binary { Stream = stream, IsLittleEndian = false };
 
         Host = binary.ReadByte();
-        Code = (FunctionCodes)binary.ReadByte();
+
+        var b = binary.ReadByte();
+        Code = (FunctionCodes)(b & 0x7F);
+
+        // 异常码
+        if ((b & 0x80) == 0x80)
+        {
+            ErrorCode = (ErrorCodes)binary.ReadByte();
+            return true;
+        }
 
         var remain = (Int32)(stream.Length - stream.Position);
         if (remain <= 0) return false;
@@ -92,7 +101,17 @@ public class ModbusMessage : IAccessor
         var binary = context as Binary ?? new Binary { Stream = stream, IsLittleEndian = false };
 
         binary.Write(Host);
-        binary.Write((Byte)Code);
+
+        var b = (Byte)Code;
+        if (ErrorCode > 0) b |= 0x80;
+        binary.Write(b);
+
+        // 异常码
+        if (ErrorCode > 0)
+        {
+            binary.Write((Byte)ErrorCode);
+            return true;
+        }
 
         var pk = Payload;
         if (!Reply)

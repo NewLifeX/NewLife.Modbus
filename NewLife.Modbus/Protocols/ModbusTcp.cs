@@ -155,6 +155,9 @@ public class ModbusTcp : Modbus
                         return null;
                     }
 
+                    // 检查功能码
+                    if (rs.ErrorCode > 0) throw new ModbusException(rs.ErrorCode, rs.ErrorCode + "");
+
                     return rs;
                 }
             }

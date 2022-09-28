@@ -1,7 +1,6 @@
 ﻿using System.IO.Ports;
 using NewLife.Data;
 using NewLife.IoT.Protocols;
-using NewLife.Log;
 
 #if NETSTANDARD2_1_OR_GREATER
 using System.Buffers;
@@ -125,6 +124,9 @@ public class ModbusRtu : Modbus
                 if (rs == null) return null;
 
                 Log?.Debug("<= {0}", rs);
+
+                // 检查功能码
+                if (rs.ErrorCode > 0) throw new ModbusException(rs.ErrorCode, rs.ErrorCode + "");
 
                 return rs;
             }
