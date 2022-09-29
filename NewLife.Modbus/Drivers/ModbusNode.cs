@@ -7,8 +7,8 @@ namespace NewLife.IoT.Drivers;
 /// </summary>
 public class ModbusNode : INode
 {
-    /// <summary>Modbus对象</summary>
-    public Modbus Modbus { get; set; }
+    ///// <summary>Modbus对象</summary>
+    //public Modbus Modbus { get; set; }
 
     /// <summary>主机地址</summary>
     public Byte Host { get; set; }

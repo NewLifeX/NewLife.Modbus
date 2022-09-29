@@ -54,7 +54,7 @@ namespace XUnitTest
             Assert.Equal(p.WriteCode, node2.WriteCode);
             //Assert.NotNull(node2.Device);
 
-            var modbus = node2.Modbus as ModbusTcp;
+            var modbus = driver.Modbus as ModbusTcp;
             Assert.NotNull(modbus);
             Assert.Equal(p.Server, modbus.Server);
         }
@@ -82,7 +82,7 @@ namespace XUnitTest
             Assert.Equal(p.WriteCode, node2.WriteCode);
             //Assert.NotNull(node2.Device);
 
-            var modbus = node2.Modbus as ModbusTcp;
+            var modbus = driver.Modbus as ModbusTcp;
             Assert.NotNull(modbus);
             Assert.Equal(p.Server, modbus.Server);
         }

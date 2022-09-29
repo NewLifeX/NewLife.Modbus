@@ -37,7 +37,7 @@ namespace XUnitTest
             Assert.Equal(p.WriteCode, node2.WriteCode);
             Assert.Null(node2.Device);
 
-            var modbus = node2.Modbus as ModbusRtu;
+            var modbus = driver.Modbus as ModbusRtu;
             Assert.NotNull(modbus);
             Assert.Equal(p.PortName, modbus.PortName);
             Assert.Equal(9600, modbus.Baudrate);

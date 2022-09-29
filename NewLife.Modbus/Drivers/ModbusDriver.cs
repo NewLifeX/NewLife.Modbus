@@ -1,4 +1,5 @@
-﻿using NewLife.IoT.Protocols;
+﻿using System.Diagnostics;
+using NewLife.IoT.Protocols;
 using NewLife.IoT.ThingModels;
 using NewLife.IoT.ThingSpecification;
 using NewLife.Serialization;
@@ -11,11 +12,10 @@ namespace NewLife.IoT.Drivers;
 public abstract class ModbusDriver : DriverBase
 {
     #region 属性
-    private Modbus _modbus;
     /// <summary>
     /// Modbus通道
     /// </summary>
-    public Modbus Modbus => _modbus;
+    public Modbus Modbus { get; set; }
 
     private Int32 _nodes;
     #endregion
@@ -29,8 +29,8 @@ public abstract class ModbusDriver : DriverBase
     {
         base.Dispose(disposing);
 
-        _modbus.TryDispose();
-        _modbus = null;
+        Modbus.TryDispose();
+        Modbus = null;
     }
     #endregion
 
@@ -69,11 +69,11 @@ public abstract class ModbusDriver : DriverBase
         };
 
         // 实例化一次Tcp连接
-        if (_modbus == null)
+        if (Modbus == null)
         {
             lock (this)
             {
-                if (_modbus == null)
+                if (Modbus == null)
                 {
                     var modbus = CreateModbus(device, node, parameters);
                     if (p.Timeout > 0) modbus.Timeout = p.Timeout;
@@ -81,8 +81,8 @@ public abstract class ModbusDriver : DriverBase
                     // 外部已指定通道时，打开连接
                     if (device != null) modbus.Open();
 
-                    _modbus = modbus;
-                    node.Modbus = modbus;
+                    Modbus = modbus;
+                    //node.Modbus = modbus;
                 }
             }
         }
@@ -100,8 +100,8 @@ public abstract class ModbusDriver : DriverBase
     {
         if (Interlocked.Decrement(ref _nodes) <= 0)
         {
-            _modbus.TryDispose();
-            _modbus = null;
+            Modbus.TryDispose();
+            Modbus = null;
         }
     }
 
@@ -123,7 +123,7 @@ public abstract class ModbusDriver : DriverBase
         var list = BuildSegments(points, p);
 
         // 加锁，避免冲突
-        lock (_modbus)
+        lock (Modbus)
         {
             // 分段整体读取
             for (var i = 0; i < list.Count; i++)
@@ -136,7 +136,7 @@ public abstract class ModbusDriver : DriverBase
                 // 其中一项读取报错时，直接跳过，不要影响其它批次
                 try
                 {
-                    seg.Data = _modbus.Read(seg.ReadCode, n.Host, (UInt16)seg.Address, (UInt16)seg.Count);
+                    seg.Data = Modbus.Read(seg.ReadCode, n.Host, (UInt16)seg.Address, (UInt16)seg.Count);
                 }
                 catch (Exception ex)
                 {
@@ -174,11 +174,12 @@ public abstract class ModbusDriver : DriverBase
         //if (!merge) return list;
         //if (list.Any(e => e.ReadCode != FunctionCodes.ReadRegister && e.ReadCode != FunctionCodes.ReadInput)) return list;
 
-        // 逆向合并，减少拷贝
-        var k = 0;
-        for (var i = list.Count - 1; i > 0; i--)
+        var k = 1;
+        var rs = new List<Segment>();
+        var prv = list[0];
+        rs.Add(prv);
+        for (var i = 1; i < list.Count; i++)
         {
-            var prv = list[i - 1];
             var cur = list[i];
 
             // 前一段末尾碰到了当前段开始，可以合并
@@ -190,19 +191,27 @@ public abstract class ModbusDriver : DriverBase
                     var size = cur.Address + cur.Count - prv.Address;
                     if (size > prv.Count) prv.Count = size;
 
-                    list.RemoveAt(i);
-
                     // 连续合并数累加
                     k++;
                 }
                 else
-                    k = 0;
+                {
+                    rs.Add(cur);
+
+                    prv = cur;
+                    k = 1;
+                }
             }
             else
-                k = 0;
+            {
+                rs.Add(cur);
+
+                prv = cur;
+                k = 1;
+            }
         }
 
-        return list;
+        return rs;
     }
 
     private IDictionary<String, Object> Dispatch(IPoint[] points, IList<Segment> segments)
@@ -221,7 +230,7 @@ public abstract class ModbusDriver : DriverBase
                 if (seg != null && seg.Data != null)
                 {
                     var code = seg.ReadCode;
-                    if (code == FunctionCodes.ReadRegister || code == FunctionCodes.ReadInput)
+                    if (code is FunctionCodes.ReadRegister or FunctionCodes.ReadInput)
                     {
                         // 校验数据完整性
                         var offset = (maddr.Address - seg.Address) * 2;
@@ -229,7 +238,7 @@ public abstract class ModbusDriver : DriverBase
                         if (seg.Data.Length >= offset + size)
                             dic[point.Name] = seg.Data.ReadBytes(offset, size);
                     }
-                    else if (code == FunctionCodes.ReadCoil || code == FunctionCodes.ReadDiscrete)
+                    else if (code is FunctionCodes.ReadCoil or FunctionCodes.ReadDiscrete)
                     {
                         // 计算偏移，每8位一个字节，地址低3位是该字节内的偏移量
                         var offset = maddr.Address - seg.Address;
@@ -246,6 +255,7 @@ public abstract class ModbusDriver : DriverBase
         return dic;
     }
 
+    [DebuggerDisplay("{ReadCode}({Address}, {Count})")]
     private class Segment
     {
         public FunctionCodes ReadCode { get; set; }
@@ -263,9 +273,7 @@ public abstract class ModbusDriver : DriverBase
     {
         // 字节数转寄存器数，要除以2
         var count = point.GetLength() / 2;
-        if (count > 0) return count;
-
-        return 1;
+        return count > 0 ? count : 1;
     }
 
     /// <summary>
@@ -283,7 +291,7 @@ public abstract class ModbusDriver : DriverBase
         UInt16[] vs;
         if (value is Byte[] buf)
         {
-            vs = new UInt16[(Int32)(Math.Ceiling(buf.Length / 2d))];
+            vs = new UInt16[(Int32)Math.Ceiling(buf.Length / 2d)];
             for (var i = 0; i < vs.Length; i++)
             {
                 vs[i] = buf.ToUInt16(i * 2, false);
@@ -297,11 +305,11 @@ public abstract class ModbusDriver : DriverBase
         }
 
         // 加锁，避免冲突
-        lock (_modbus)
+        lock (Modbus)
         {
             var code = maddr.GetWriteCode();
             if (code == 0) code = n.WriteCode;
-            return _modbus.Write(code, n.Host, maddr.Address, vs);
+            return Modbus.Write(code, n.Host, maddr.Address, vs);
         }
     }
 
