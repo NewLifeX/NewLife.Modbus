@@ -1,6 +1,5 @@
 ﻿using System.Net.Sockets;
 using NewLife.Data;
-using NewLife.Log;
 using NewLife.Net;
 
 #if NETSTANDARD2_1_OR_GREATER

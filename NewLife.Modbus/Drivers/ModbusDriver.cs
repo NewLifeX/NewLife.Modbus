@@ -10,12 +10,15 @@ namespace NewLife.IoT.Drivers;
 /// </summary>
 public abstract class ModbusDriver : DriverBase
 {
+    #region 属性
+    private Modbus _modbus;
     /// <summary>
     /// Modbus通道
     /// </summary>
-    protected Modbus _modbus;
+    public Modbus Modbus => _modbus;
 
     private Int32 _nodes;
+    #endregion
 
     #region 构造
     /// <summary>
