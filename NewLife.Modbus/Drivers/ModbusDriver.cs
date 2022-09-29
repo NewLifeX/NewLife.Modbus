@@ -1,7 +1,6 @@
 ﻿using NewLife.IoT.Protocols;
 using NewLife.IoT.ThingModels;
 using NewLife.IoT.ThingSpecification;
-using NewLife.Log;
 using NewLife.Serialization;
 
 namespace NewLife.IoT.Drivers;
@@ -9,7 +8,7 @@ namespace NewLife.IoT.Drivers;
 /// <summary>
 /// Modbus协议封装
 /// </summary>
-public abstract class ModbusDriver : DisposeBase, IDriver, ILogFeature, ITracerFeature
+public abstract class ModbusDriver : DriverBase
 {
     /// <summary>
     /// Modbus通道
@@ -32,13 +31,10 @@ public abstract class ModbusDriver : DisposeBase, IDriver, ILogFeature, ITracerF
     }
     #endregion
 
-    #region 方法
-    /// <summary>
-    /// 创建驱动参数对象，可序列化成Xml/Json作为该协议的参数模板
-    /// </summary>
-    /// <returns></returns>
-    public abstract IDriverParameter CreateParameter();
+    #region 元数据
+    #endregion
 
+    #region 方法
     /// <summary>
     /// 创建Modbus通道
     /// </summary>
@@ -54,7 +50,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver, ILogFeature, ITracerF
     /// <param name="device">通道</param>
     /// <param name="parameters">参数</param>
     /// <returns></returns>
-    public virtual INode Open(IDevice device, IDictionary<String, Object> parameters)
+    public override INode Open(IDevice device, IDictionary<String, Object> parameters)
     {
         var p = JsonHelper.Convert<ModbusParameter>(parameters);
 
@@ -97,7 +93,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver, ILogFeature, ITracerF
     /// 关闭设备驱动
     /// </summary>
     /// <param name="node"></param>
-    public virtual void Close(INode node)
+    public override void Close(INode node)
     {
         if (Interlocked.Decrement(ref _nodes) <= 0)
         {
@@ -112,7 +108,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver, ILogFeature, ITracerF
     /// <param name="node">节点对象，可存储站号等信息，仅驱动自己识别</param>
     /// <param name="points">点位集合</param>
     /// <returns></returns>
-    public virtual IDictionary<String, Object> Read(INode node, IPoint[] points)
+    public override IDictionary<String, Object> Read(INode node, IPoint[] points)
     {
         if (points == null || points.Length == 0) return null;
 
@@ -275,7 +271,7 @@ public abstract class ModbusDriver : DisposeBase, IDriver, ILogFeature, ITracerF
     /// <param name="node">节点对象，可存储站号等信息，仅驱动自己识别</param>
     /// <param name="point">点位</param>
     /// <param name="value">数值</param>
-    public virtual Object Write(INode node, IPoint point, Object value)
+    public override Object Write(INode node, IPoint point, Object value)
     {
         if (value == null) return null;
         if (!ModbusAddress.TryParse(point.Address, out var maddr)) return null;
@@ -387,14 +383,6 @@ public abstract class ModbusDriver : DisposeBase, IDriver, ILogFeature, ITracerF
     /// <param name="node"></param>
     /// <param name="parameters"></param>
     /// <exception cref="NotImplementedException"></exception>
-    public virtual void Control(INode node, IDictionary<String, Object> parameters) => throw new NotImplementedException();
-    #endregion
-
-    #region 日志
-    /// <summary>日志</summary>
-    public ILog Log { get; set; }
-
-    /// <summary>性能追踪器</summary>
-    public ITracer Tracer { get; set; }
+    public override void Control(INode node, IDictionary<String, Object> parameters) => throw new NotImplementedException();
     #endregion
 }
