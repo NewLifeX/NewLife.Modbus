@@ -4,6 +4,7 @@ using System.Linq;
 using NewLife;
 using NewLife.IoT.Drivers;
 using NewLife.IoT.Protocols;
+using NewLife.IoT.ThingModels;
 using NewLife.Log;
 using NewLife.Net;
 using Xunit;
@@ -85,6 +86,32 @@ namespace XUnitTest
             var modbus = driver.Modbus as ModbusTcp;
             Assert.NotNull(modbus);
             Assert.Equal(p.Server, modbus.Server);
+        }
+
+        [Fact]
+        public void Test3()
+        {
+            var driver = new ModbusTcpDriver();
+
+            var p = new ModbusTcpParameter
+            {
+                Host = 3,
+                ReadCode = FunctionCodes.ReadRegister,
+                WriteCode = FunctionCodes.WriteRegister,
+                Server = "tcp://localhost:1502",
+            };
+
+            var node = driver.Open(null, p);
+
+            var point = new PointModel
+            {
+                Name = "switch2",
+                Address = "1",
+                Type = "bool",
+            };
+
+            var rs = driver.Write(node, point, "True");
+            Assert.NotNull(rs);
         }
     }
 }

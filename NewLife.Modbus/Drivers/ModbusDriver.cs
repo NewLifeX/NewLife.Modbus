@@ -2,6 +2,7 @@
 using NewLife.IoT.Protocols;
 using NewLife.IoT.ThingModels;
 using NewLife.IoT.ThingSpecification;
+using NewLife.Reflection;
 using NewLife.Serialization;
 
 namespace NewLife.IoT.Drivers;
@@ -287,6 +288,7 @@ public abstract class ModbusDriver : DriverBase
         if (value == null) return null;
         if (!ModbusAddress.TryParse(point.Address, out var maddr)) return null;
 
+        using var span = Tracer?.NewSpan("Write", new { point, value });
         var n = node as ModbusNode;
         UInt16[] vs;
         if (value is Byte[] buf)
@@ -324,58 +326,119 @@ public abstract class ModbusDriver : DriverBase
         var pi = spec?.Properties?.FirstOrDefault(e => e.Id.EqualIgnoreCase(point.Name));
         var type = pi?.DataType?.Type;
         if (type.IsNullOrEmpty()) type = point.Type;
-        if (type.IsNullOrEmpty()) return null;
+        //if (type.IsNullOrEmpty()) return null;
 
-        switch (type.ToLower())
+        var type2 = TypeHelper.GetNetType(point);
+        //var value = data.ChangeType(type2);
+        switch (type2.GetTypeCode())
         {
-            case "short":
-            case "int16":
-            case "ushort":
-            case "uint16":
-                {
-                    var n = data.ToInt();
-                    return new[] { (UInt16)n };
-                }
-            case "int":
-            case "int32":
-            case "uint":
-            case "uint32":
+            case TypeCode.Boolean:
+                return data.ToBoolean() ? new[] { (UInt16)0xFF00 } : new[] { (UInt16)0x00 };
+            //case TypeCode.Byte:
+            //    break;
+            //case TypeCode.Char:
+            //    break;
+            //case TypeCode.DateTime:
+            //    break;
+            //case TypeCode.DBNull:
+            //    break;
+            //case TypeCode.Empty:
+            //    break;
+            case TypeCode.Int16:
+            case TypeCode.UInt16:
+                return new[] { (UInt16)data.ToInt() };
+            case TypeCode.Int32:
+            case TypeCode.UInt32:
                 {
                     var n = data.ToInt();
                     return new[] { (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
                 }
-            case "long":
-            case "int64":
-            case "ulong":
-            case "uint64":
+            case TypeCode.Int64:
+            case TypeCode.UInt64:
                 {
                     var n = data.ToLong();
                     return new[] { (UInt16)(n >> 48), (UInt16)(n >> 32), (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
                 }
-            case "float":
-            case "single":
+            //case TypeCode.Object:
+            //    break;
+            //case TypeCode.SByte:
+            //    break;
+            case TypeCode.Single:
                 {
                     var d = (Single)data.ToDouble();
                     //var n = BitConverter.SingleToInt32Bits(d);
                     var n = (UInt32)d;
                     return new[] { (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
                 }
-            case "double":
-            case "decimal":
+            case TypeCode.Double:
                 {
-                    var d = data.ToDouble();
+                    var d = (Double)data.ToDouble();
                     //var n = BitConverter.DoubleToInt64Bits(d);
                     var n = (UInt64)d;
                     return new[] { (UInt16)(n >> 48), (UInt16)(n >> 32), (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
                 }
-            case "bool":
-            case "boolean":
+            case TypeCode.Decimal:
                 {
-                    return data.ToBoolean() ? new[] { (UInt16)0xFF00 } : new[] { (UInt16)0x00 };
+                    var d = (Decimal)data.ToDecimal();
+                    var n = (UInt64)d;
+                    return new[] { (UInt16)(n >> 48), (UInt16)(n >> 32), (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
                 }
+            //case TypeCode.String:
+            //    break;
             default:
                 return null;
         }
+
+        //switch (type.ToLower())
+        //{
+        //    case "short":
+        //    case "int16":
+        //    case "ushort":
+        //    case "uint16":
+        //        {
+        //            var n = data.ToInt();
+        //            return new[] { (UInt16)n };
+        //        }
+        //    case "int":
+        //    case "int32":
+        //    case "uint":
+        //    case "uint32":
+        //        {
+        //            var n = data.ToInt();
+        //            return new[] { (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
+        //        }
+        //    case "long":
+        //    case "int64":
+        //    case "ulong":
+        //    case "uint64":
+        //        {
+        //            var n = data.ToLong();
+        //            return new[] { (UInt16)(n >> 48), (UInt16)(n >> 32), (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
+        //        }
+        //    case "float":
+        //    case "single":
+        //        {
+        //            var d = (Single)data.ToDouble();
+        //            //var n = BitConverter.SingleToInt32Bits(d);
+        //            var n = (UInt32)d;
+        //            return new[] { (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
+        //        }
+        //    case "double":
+        //    case "decimal":
+        //        {
+        //            var d = data.ToDouble();
+        //            //var n = BitConverter.DoubleToInt64Bits(d);
+        //            var n = (UInt64)d;
+        //            return new[] { (UInt16)(n >> 48), (UInt16)(n >> 32), (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
+        //        }
+        //    case "bool":
+        //    case "boolean":
+        //        {
+        //            return data.ToBoolean() ? new[] { (UInt16)0xFF00 } : new[] { (UInt16)0x00 };
+        //        }
+        //    default:
+        //        return null;
+        //}
         //return type.ToLower() switch
         //{
         //    "short" or "int16" or "ushort" or "uint16" => new[] { (UInt16)n },
