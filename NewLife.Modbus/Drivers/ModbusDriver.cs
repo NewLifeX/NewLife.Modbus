@@ -134,6 +134,13 @@ public abstract class ModbusDriver : DriverBase
                 //var code = seg.ReadCode > 0 ? seg.ReadCode : n.ReadCode;
                 if (seg.ReadCode == 0) seg.ReadCode = n.ReadCode;
 
+                // 读取线圈时，个数向8对齐
+                if (seg.ReadCode == FunctionCodes.ReadCoil)
+                {
+                    var y = seg.Count % 8;
+                    seg.Count += 8 - y;
+                }
+
                 // 其中一项读取报错时，直接跳过，不要影响其它批次
                 try
                 {
