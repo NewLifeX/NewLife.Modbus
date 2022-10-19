@@ -20,10 +20,5 @@ jobs:
     - name: Build
       run: dotnet build -c Release
 
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
     - name: Test
       run: dotnet test -c Release

@@ -8,6 +8,7 @@ on:
     paths:
         - 'NewLife.Modbus/**'
         - 'NewLife.ModbusRTU/**'
+  workflow_dispatch:
 
 jobs:
   build-publish:
