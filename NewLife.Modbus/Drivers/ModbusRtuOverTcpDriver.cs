@@ -1,12 +1,12 @@
-﻿using NewLife.IoT.Protocols;
+﻿using System.ComponentModel;
+using NewLife.IoT.Protocols;
 using NewLife.Serialization;
 
 namespace NewLife.IoT.Drivers;
 
-/// <summary>
-/// ModbusRtu协议封装
-/// </summary>
+/// <summary>TCP网络版ModbusRTU</summary>
 [Driver("ModbusRtuOverTcp")]
+[DisplayName("TCP网络版ModbusRTU")]
 public class ModbusRtuOverTcpDriver : ModbusDriver, IDriver
 {
     #region 方法
@@ -37,10 +37,9 @@ public class ModbusRtuOverTcpDriver : ModbusDriver, IDriver
 
         node.Parameter = p;
 
-        var modbus = new ModbusTcp
+        var modbus = new ModbusRtuOverTcp
         {
             Server = p.Server,
-            ProtocolId = p.ProtocolId,
 
             Tracer = Tracer,
             Log = Log,
