@@ -3,12 +3,12 @@ using NewLife.Serialization;
 
 namespace NewLife.IoT.Protocols;
 
-/// <summary>ModbusRtu消息</summary>
-public class ModbusRtuMessage : ModbusMessage
+/// <summary>ModbusAscii消息</summary>
+public class ModbusAsciiMessage : ModbusMessage
 {
     #region 属性
-    /// <summary>CRC校验</summary>
-    public UInt16 Crc { get; set; }
+    /// <summary>LRC校验</summary>
+    public UInt16 Lrc { get; set; }
     #endregion
 
     #region 方法
@@ -18,11 +18,36 @@ public class ModbusRtuMessage : ModbusMessage
     /// <returns></returns>
     public override Boolean Read(Stream stream, Object context)
     {
-        var binary = context as Binary ?? new Binary { Stream = stream, IsLittleEndian = false };
+        var flag = stream.ReadByte();
+        if (flag != ':') return false;
 
-        if (!base.Read(stream, context ?? binary)) return false;
+        var ms = new MemoryStream();
+        while (true)
+        {
+            var a = stream.ReadByte();
+            var b = stream.ReadByte();
+            if (a < 0 || b < 0) break;
+            if (a == '\r' && b == '\n') break;
 
-        Crc = binary.ReadUInt16();
+            if (a >= 'A')
+                a -= 'A';
+            else
+                a -= '0';
+
+            if (b >= 'A')
+                b -= 'A';
+            else
+                b -= '0';
+
+            ms.WriteByte((Byte)((a << 8) | b));
+        }
+
+        ms.Position = 0;
+        var binary = context as Binary ?? new Binary { Stream = ms, IsLittleEndian = false };
+
+        if (!base.Read(ms, context ?? binary)) return false;
+
+        Lrc = binary.ReadUInt16();
 
         return true;
     }
@@ -31,9 +56,9 @@ public class ModbusRtuMessage : ModbusMessage
     /// <param name="data">数据包</param>
     /// <param name="reply">是否响应</param>
     /// <returns></returns>
-    public static new ModbusRtuMessage Read(Packet data, Boolean reply = false)
+    public static new ModbusAsciiMessage Read(Packet data, Boolean reply = false)
     {
-        var msg = new ModbusRtuMessage { Reply = reply };
+        var msg = new ModbusAsciiMessage { Reply = reply };
         return msg.Read(data.GetStream(), null) ? msg : null;
     }
 
