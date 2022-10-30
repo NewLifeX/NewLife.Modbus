@@ -1,5 +1,4 @@
-﻿using System.Net.Sockets;
-using NewLife.Data;
+﻿using NewLife.Data;
 using NewLife.Net;
 
 #if NETSTANDARD2_1_OR_GREATER
@@ -79,7 +78,7 @@ public class ModbusUdp : Modbus
 
     /// <summary>创建消息</summary>
     /// <returns></returns>
-    protected override ModbusMessage CreateMessage() => new ModbusTcpMessage
+    protected override ModbusMessage CreateMessage() => new ModbusIpMessage
     {
         ProtocolId = ProtocolId,
         TransactionId = (UInt16)Interlocked.Increment(ref _transactionId)
@@ -138,13 +137,13 @@ public class ModbusUdp : Modbus
 
                     if (span != null) span.Tag = pk.ToHex();
 
-                    var rs = ModbusTcpMessage.Read(pk, true);
+                    var rs = ModbusIpMessage.Read(pk, true);
                     if (rs == null) return null;
 
                     Log?.Debug("<= {0}", rs);
 
                     // 检查事务标识
-                    if (message is ModbusTcpMessage mtm && mtm.TransactionId != rs.TransactionId)
+                    if (message is ModbusIpMessage mtm && mtm.TransactionId != rs.TransactionId)
                     {
                         WriteLog("TransactionId Error {0}!={1}", rs.TransactionId, mtm.TransactionId);
 

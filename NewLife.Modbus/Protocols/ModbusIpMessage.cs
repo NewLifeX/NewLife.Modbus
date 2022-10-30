@@ -6,7 +6,7 @@ namespace NewLife.IoT.Protocols;
 /// <summary>
 /// ModbusTcp消息
 /// </summary>
-public class ModbusTcpMessage : ModbusMessage
+public class ModbusIpMessage : ModbusMessage
 {
     #region 属性
     /// <summary>事务元标识符。主要用于在主站设备在接收到响应时能知道是哪个请求的响应</summary>
@@ -38,9 +38,9 @@ public class ModbusTcpMessage : ModbusMessage
     /// <param name="pk"></param>
     /// <param name="reply"></param>
     /// <returns></returns>
-    public new static ModbusTcpMessage Read(Packet pk, Boolean reply = false)
+    public new static ModbusIpMessage Read(Packet pk, Boolean reply = false)
     {
-        var msg = new ModbusTcpMessage { Reply = reply };
+        var msg = new ModbusIpMessage { Reply = reply };
         if (msg.Read(pk.GetStream(), null)) return msg;
 
         return null;
@@ -75,7 +75,7 @@ public class ModbusTcpMessage : ModbusMessage
     {
         if (Reply) throw new InvalidOperationException();
 
-        var msg = new ModbusTcpMessage
+        var msg = new ModbusIpMessage
         {
             Reply = true,
             TransactionId = TransactionId,

@@ -13,7 +13,7 @@ public class ModbusSession : NetSession<ModbusSlave>
     /// <param name="e"></param>
     protected override void OnReceive(ReceivedEventArgs e)
     {
-        var msg = ModbusTcpMessage.Read(e.Packet);
+        var msg = ModbusIpMessage.Read(e.Packet);
         if (msg == null) return;
 
         Log?.Debug("<= {0}", msg);

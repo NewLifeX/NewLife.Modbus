@@ -27,7 +27,7 @@ public class ModbusDriverTests
         //    Timeout = Rand.Next(),
         //    BatchSize = Rand.Next(),
         //};
-        var p = new ModbusTcpParameter();
+        var p = new ModbusIpParameter();
         Rand.Fill(p);
         var dic = p.ToDictionary();
 
@@ -55,7 +55,7 @@ public class ModbusDriverTests
     {
         var driver = new ModbusTcpDriver();
 
-        var p = new ModbusTcpParameter();
+        var p = new ModbusIpParameter();
         Rand.Fill(p);
         var dic = p.ToDictionary();
 
