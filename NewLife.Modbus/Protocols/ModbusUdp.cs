@@ -1,5 +1,4 @@
 ﻿using NewLife.Data;
-using NewLife.Net;
 
 namespace NewLife.IoT.Protocols;
 
@@ -14,21 +13,9 @@ public class ModbusUdp : ModbusIp
     public UInt16 ProtocolId { get; set; }
 
     private Int32 _transactionId;
-    private ISocketClient _client;
     #endregion
 
     #region 构造
-    /// <summary>
-    /// 销毁
-    /// </summary>
-    /// <param name="disposing"></param>
-    protected override void Dispose(Boolean disposing)
-    {
-        base.Dispose(disposing);
-
-        _client.TryDispose();
-        _client = null;
-    }
     #endregion
 
     #region 方法

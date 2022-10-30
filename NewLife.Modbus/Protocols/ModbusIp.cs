@@ -1,10 +1,6 @@
 ﻿using NewLife.Data;
 using NewLife.Net;
 
-#if NETSTANDARD2_1_OR_GREATER
-using System.Buffers;
-#endif
-
 namespace NewLife.IoT.Protocols;
 
 /// <summary>Modbus以太网通信</summary>
@@ -14,19 +10,14 @@ namespace NewLife.IoT.Protocols;
 public abstract class ModbusIp : Modbus
 {
     #region 属性
-    /// <summary>名称</summary>
-    public String Name { get; set; }
-
-    /// <summary>服务端地址。127.0.0.1:502</summary>
+    /// <summary>服务端地址。tcp://127.0.0.1:502</summary>
     public String Server { get; set; }
 
-    private ISocketClient _client;
+    /// <summary>网络客户端</summary>
+    protected ISocketClient _client;
     #endregion
 
     #region 构造
-    /// <summary>实例化</summary>
-    public ModbusIp() => Name = GetType().Name;
-
     /// <summary>
     /// 销毁
     /// </summary>
@@ -56,7 +47,7 @@ public abstract class ModbusIp : Modbus
     {
         if (_client == null || _client.Disposed)
         {
-            if (Server.IsNullOrEmpty()) throw new Exception("ModbusUdp未指定服务端地址Server");
+            if (Server.IsNullOrEmpty()) throw new Exception($"{Name}未指定服务端地址Server");
 
             var uri = new NetUri(Server);
             if (uri.Type <= 0) uri.Type = NetType.Tcp;
@@ -85,6 +76,30 @@ public abstract class ModbusIp : Modbus
     /// <returns>响应消息</returns>
     protected abstract ModbusMessage ReadMessage(ModbusMessage request, Packet data, out Boolean match);
 
+    /// <summary>接收响应</summary>
+    /// <returns></returns>
+    protected virtual Packet ReceiveCommand()
+    {
+        // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
+        var dataLength = 8; // 2+2+2+1+1
+        var count = 0;
+        Packet pk = null;
+        while (count < dataLength)
+        {
+            var pk2 = _client.Receive();
+            if (pk == null)
+                pk = pk2;
+            else
+                pk.Append(pk2);
+
+            // 已取得请求头，计算真实长度
+            count = pk.Total;
+            if (count >= 6) dataLength = pk.ReadBytes(4, 2).ToUInt16(0, false);
+        }
+
+        return pk;
+    }
+
     /// <summary>发送消息并接收返回</summary>
     /// <param name="message">Modbus消息</param>
     /// <returns></returns>
@@ -95,8 +110,8 @@ public abstract class ModbusIp : Modbus
         Log?.Debug("=> {0}", message);
 
         {
-            var cmd = message.ToPacket().ToArray();
-            using var span = Tracer?.NewSpan("modbus:SendCommand", cmd.ToHex("-"));
+            var cmd = message.ToPacket();
+            using var span = Tracer?.NewSpan("modbus:SendCommand", cmd.ToHex(64, "-"));
             try
             {
                 _client.Send(cmd);
@@ -110,31 +125,12 @@ public abstract class ModbusIp : Modbus
 
         {
             using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
-#if NETSTANDARD2_1_OR_GREATER
-            var buf = ArrayPool<Byte>.Shared.Rent(BufferSize);
-#else
-            var buf = new Byte[BufferSize];
-#endif
             try
             {
                 while (true)
                 {
                     // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
-                    var dataLength = 8;
-                    var count = 0;
-                    Packet pk = null;
-                    while (count < dataLength)
-                    {
-                        var pk2 = _client.Receive();
-                        if (pk == null)
-                            pk = pk2;
-                        else
-                            pk.Append(pk2);
-
-                        // 已取得请求头，计算真实长度
-                        count = pk.Total;
-                        if (count >= 6) dataLength = buf.ToUInt16(4, false);
-                    }
+                    var pk = ReceiveCommand();
 
                     if (span != null) span.Tag = pk.ToHex();
 
@@ -147,7 +143,7 @@ public abstract class ModbusIp : Modbus
                     if (!match) continue;
 
                     // 检查功能码
-                    if (rs.ErrorCode > 0) throw new ModbusException(rs.ErrorCode, rs.ErrorCode + "");
+                    if (rs.ErrorCode > 0) throw new ModbusException(rs.ErrorCode, rs.ErrorCode.GetDescription());
 
                     return rs;
                 }
@@ -157,12 +153,6 @@ public abstract class ModbusIp : Modbus
                 span?.SetError(ex, null);
                 if (ex is TimeoutException) return null;
                 throw;
-            }
-            finally
-            {
-#if NETSTANDARD2_1_OR_GREATER
-                ArrayPool<Byte>.Shared.Return(buf);
-#endif
             }
         }
     }

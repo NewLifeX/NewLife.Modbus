@@ -4,10 +4,13 @@ using NewLife.Serialization;
 
 namespace NewLife.IoT.Protocols;
 
-/// <summary>Modbus协议</summary>
+/// <summary>Modbus协议核心</summary>
 public abstract class Modbus : DisposeBase
 {
     #region 属性
+    /// <summary>名称</summary>
+    public String Name { get; set; }
+
     /// <summary>网络超时。发起请求后等待响应的超时时间，默认3000ms</summary>
     public Int32 Timeout { get; set; } = 3000;
 
@@ -16,6 +19,11 @@ public abstract class Modbus : DisposeBase
 
     /// <summary>性能追踪器</summary>
     public ITracer Tracer { get; set; }
+    #endregion
+
+    #region 构造
+    /// <summary>实例化</summary>
+    public Modbus() => Name = GetType().Name;
     #endregion
 
     #region 核心方法
