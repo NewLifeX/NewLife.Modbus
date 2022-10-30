@@ -24,7 +24,7 @@ public class ModbusMessage : IAccessor
     /// <summary>地址。请求数据，地址与负载；响应数据没有地址只有负载</summary>
     public UInt16 Address { get; set; }
 
-    /// <summary>负载数据</summary>
+    /// <summary>负载数据。请求数据，地址与负载；响应数据没有地址只有负载</summary>
     [IgnoreDataMember]
     public Packet Payload { get; set; }
     #endregion
@@ -42,8 +42,8 @@ public class ModbusMessage : IAccessor
 
     #region 方法
     /// <summary>读取</summary>
-    /// <param name="stream"></param>
-    /// <param name="context"></param>
+    /// <param name="stream">数据流</param>
+    /// <param name="context">上下文</param>
     /// <returns></returns>
     public virtual Boolean Read(Stream stream, Object context)
     {
@@ -81,20 +81,20 @@ public class ModbusMessage : IAccessor
     }
 
     /// <summary>解析消息</summary>
-    /// <param name="pk"></param>
-    /// <param name="reply"></param>
+    /// <param name="data">数据包</param>
+    /// <param name="reply">是否响应</param>
     /// <returns></returns>
-    public static ModbusMessage Read(Packet pk, Boolean reply = false)
+    public static ModbusMessage Read(Packet data, Boolean reply = false)
     {
         var msg = new ModbusMessage { Reply = reply };
-        if (msg.Read(pk.GetStream(), null)) return msg;
+        if (msg.Read(data.GetStream(), null)) return msg;
 
         return null;
     }
 
     /// <summary>写入消息到数据流</summary>
-    /// <param name="stream"></param>
-    /// <param name="context"></param>
+    /// <param name="stream">数据流</param>
+    /// <param name="context">上下文</param>
     /// <returns></returns>
     public virtual Boolean Write(Stream stream, Object context)
     {

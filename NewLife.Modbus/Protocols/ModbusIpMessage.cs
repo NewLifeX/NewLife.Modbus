@@ -3,23 +3,21 @@ using NewLife.Serialization;
 
 namespace NewLife.IoT.Protocols;
 
-/// <summary>
-/// ModbusTcp消息
-/// </summary>
+/// <summary>ModbusTcp、ModbusUdp消息</summary>
 public class ModbusIpMessage : ModbusMessage
 {
     #region 属性
     /// <summary>事务元标识符。主要用于在主站设备在接收到响应时能知道是哪个请求的响应</summary>
     public UInt16 TransactionId { get; set; }
 
-    /// <summary>协议标识符。对于MODBUS 协议来说，这里恒为0</summary>
+    /// <summary>协议标识符。对于MODBUS协议来说，这里恒为0</summary>
     public UInt16 ProtocolId { get; set; }
     #endregion
 
     #region 方法
     /// <summary>读取</summary>
-    /// <param name="stream"></param>
-    /// <param name="context"></param>
+    /// <param name="stream">数据流</param>
+    /// <param name="context">上下文</param>
     /// <returns></returns>
     public override Boolean Read(Stream stream, Object context)
     {
@@ -35,20 +33,18 @@ public class ModbusIpMessage : ModbusMessage
     }
 
     /// <summary>解析消息</summary>
-    /// <param name="pk"></param>
-    /// <param name="reply"></param>
+    /// <param name="data">数据包</param>
+    /// <param name="reply">是否响应</param>
     /// <returns></returns>
-    public new static ModbusIpMessage Read(Packet pk, Boolean reply = false)
+    public new static ModbusIpMessage Read(Packet data, Boolean reply = false)
     {
         var msg = new ModbusIpMessage { Reply = reply };
-        if (msg.Read(pk.GetStream(), null)) return msg;
-
-        return null;
+        return msg.Read(data.GetStream(), null) ? msg : null;
     }
 
     /// <summary>写入消息到数据流</summary>
-    /// <param name="stream"></param>
-    /// <param name="context"></param>
+    /// <param name="stream">数据流</param>
+    /// <param name="context">上下文</param>
     /// <returns></returns>
     public override Boolean Write(Stream stream, Object context)
     {
