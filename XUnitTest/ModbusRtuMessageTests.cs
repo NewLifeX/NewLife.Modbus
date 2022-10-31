@@ -22,4 +22,21 @@ public class ModbusRtuMessageTests
         Assert.Equal(0x02, msg.Address);
         Assert.Equal(0xFF00, msg.Payload.ToArray().ToUInt16(0, false));
     }
+
+    [Fact]
+    public void Test2()
+    {
+        var str = "01-05-00-02-00-00-6C-0A";
+        var dt = str.ToHex();
+
+        var msg = ModbusRtuMessage.Read(dt, true);
+        Assert.NotNull(msg);
+
+        Assert.Equal(1, msg.Host);
+        Assert.False(msg.Reply);
+        Assert.Equal(FunctionCodes.WriteCoil, msg.Code);
+        Assert.Equal((ErrorCodes)0, msg.ErrorCode);
+        Assert.Equal(0x02, msg.Address);
+        Assert.Equal(0xFF00, msg.Payload.ToArray().ToUInt16(0, false));
+    }
 }

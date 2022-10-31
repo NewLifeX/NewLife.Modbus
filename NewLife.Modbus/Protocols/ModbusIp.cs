@@ -56,10 +56,17 @@ public abstract class ModbusIp : Modbus
             var client = uri.CreateRemote();
             client.Timeout = Timeout;
 
-            if (client is TcpSession tcp)
-                tcp.MaxAsync = 0;
-            else if (client is UdpServer udp)
-                udp.MaxAsync = 0;
+            // 使用同步接收，每个数据帧最大256字节
+            if (client is SessionBase session)
+            {
+                session.MaxAsync = 0;
+                session.BufferSize = 256;
+            }
+
+            //if (client is TcpSession tcp)
+            //    tcp.MaxAsync = 0;
+            //else if (client is UdpServer udp)
+            //    udp.MaxAsync = 0;
 
             client.Open();
 
