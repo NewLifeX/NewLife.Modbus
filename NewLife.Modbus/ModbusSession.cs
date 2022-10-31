@@ -59,7 +59,7 @@ public class ModbusSession : NetSession<ModbusSlave>
 
         // 连续地址，其实地址有可能不是8的倍数
         var regCount = msg.Payload.ReadBytes(0, 2).ToUInt16(0, false);
-        var addr = msg.Address - coils[0].Address;
+        var addr = msg.GetAddress() - coils[0].Address;
         if (addr >= 0 && addr + regCount <= coils.Count)
         {
             // 取出该段存储单元
@@ -94,7 +94,7 @@ public class ModbusSession : NetSession<ModbusSlave>
 
         // 连续地址
         var regCount = msg.Payload.ReadBytes(0, 2).ToUInt16(0, false);
-        var addr = msg.Address - regs[0].Address;
+        var addr = msg.GetAddress() - regs[0].Address;
         if (addr >= 0 && addr + regCount <= regs.Count)
         {
             return regs.Skip(addr).Take(regCount).SelectMany(e => e.GetData()).ToArray();
@@ -110,10 +110,11 @@ public class ModbusSession : NetSession<ModbusSlave>
 
         // 连续地址
         var regCount = 0;
+        var reqAddr = msg.GetAddress();
         for (var i = 0; i < 256 && i + 1 < msg.Payload.Total; i += 2)
         {
             var value = msg.Payload.ReadBytes(i, 2).ToUInt16(0, false);
-            var addr = msg.Address - regs[0].Address;
+            var addr = reqAddr - regs[0].Address;
             if (addr >= 0 && addr < regs.Count)
             {
                 var ru = regs[addr];
@@ -124,7 +125,7 @@ public class ModbusSession : NetSession<ModbusSlave>
         //Invoke(() => { dgv.Refresh(); });
 
         {
-            var addr = msg.Address - regs[0].Address;
+            var addr = reqAddr - regs[0].Address;
             return regs.Skip(addr).Take(regCount).SelectMany(e => e.GetData()).ToArray();
         }
     }

@@ -21,10 +21,10 @@ public class ModbusMessage : IAccessor
     /// <summary>错误码</summary>
     public ErrorCodes ErrorCode { get; set; }
 
-    /// <summary>地址。请求数据，地址与负载；响应数据没有地址只有负载</summary>
-    public UInt16 Address { get; set; }
+    ///// <summary>地址。请求数据，地址与负载；响应数据没有地址只有负载</summary>
+    //public UInt16 Address { get; set; }
 
-    /// <summary>负载数据。请求数据，地址与负载；响应数据没有地址只有负载</summary>
+    /// <summary>负载数据</summary>
     [IgnoreDataMember]
     public Packet Payload { get; set; }
     #endregion
@@ -34,9 +34,12 @@ public class ModbusMessage : IAccessor
     /// <returns></returns>
     public override String ToString()
     {
-        if (!Reply) return $"{Code} (0x{Address:X4}, {Payload?.ToHex()})";
+        var pk = Payload;
 
-        return $"{Code} {Payload?.ToHex()}";
+        if (!Reply && pk != null && Code <= FunctionCodes.WriteRegisters)
+            return $"{Code} (0x{GetAddress():X4}, {pk?.ToHex()})";
+
+        return $"{Code} {pk?.ToHex()}";
     }
     #endregion
 
@@ -61,21 +64,24 @@ public class ModbusMessage : IAccessor
             return true;
         }
 
-        var remain = (Int32)(stream.Length - stream.Position);
-        if (remain <= 0) return false;
+        //var remain = (Int32)(stream.Length - stream.Position);
+        //if (remain <= 0) return false;
 
-        if (!Reply)
-        {
-            // 请求数据，地址和负载
-            Address = binary.Read<UInt16>();
-            Payload = binary.ReadBytes(remain - 2);
-        }
-        else if (remain >= 1)
-        {
-            // 响应数据，长度和负载
-            var len = binary.ReadByte();
-            if (len <= remain - 1) Payload = binary.ReadBytes(len);
-        }
+        //if (!Reply)
+        //{
+        //    // 请求数据，地址和负载
+        //    Address = binary.Read<UInt16>();
+        //    Payload = binary.ReadBytes(remain - 2);
+        //}
+        //else if (remain >= 1)
+        //{
+        //    //// 响应数据，长度和负载
+        //    //var len = binary.ReadByte();
+        //    //if (len <= remain - 1) Payload = binary.ReadBytes(len);
+        //    Payload = binary.ReadBytes(remain);
+        //}
+
+        Payload = stream.ReadBytes();
 
         return true;
     }
@@ -114,18 +120,19 @@ public class ModbusMessage : IAccessor
         }
 
         var pk = Payload;
-        if (!Reply)
-        {
-            // 请求数据，地址和负载
-            binary.Write(Address);
-            if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
-        }
-        else
-        {
-            var len2 = (pk?.Total ?? 0);
-            binary.Write((Byte)len2);
-            if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
-        }
+        if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
+        //if (!Reply)
+        //{
+        //    // 请求数据，地址和负载
+        //    binary.Write(Address);
+        //    if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
+        //}
+        //else
+        //{
+        //    var len2 = (pk?.Total ?? 0);
+        //    binary.Write((Byte)len2);
+        //    if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
+        //}
 
         return true;
     }
@@ -156,6 +163,22 @@ public class ModbusMessage : IAccessor
         };
 
         return msg;
+    }
+
+    /// <summary>获取地址。取负载开始2字节作为地址，基础读写指令都有</summary>
+    /// <returns></returns>
+    public UInt16 GetAddress() => Payload?.ReadBytes(0, 2).ToUInt16(0, false) ?? 0;
+
+    /// <summary>设置地址和数值，填充负载数据</summary>
+    /// <param name="address"></param>
+    /// <param name="value"></param>
+    public void Set(UInt16 address, UInt16 value)
+    {
+        var buf = new Byte[4];
+        buf.Write(address, 0, false);
+        buf.Write(value, 2, false);
+
+        Payload = buf;
     }
     #endregion
 }

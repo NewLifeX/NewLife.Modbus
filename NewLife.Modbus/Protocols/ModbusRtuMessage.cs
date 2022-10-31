@@ -22,7 +22,16 @@ public class ModbusRtuMessage : ModbusMessage
 
         if (!base.Read(stream, context ?? binary)) return false;
 
-        Crc = binary.ReadUInt16();
+        //Crc = binary.ReadUInt16();
+
+        // 从负载数据里把Crc取出来
+        var pk = Payload;
+        var count = pk?.Total ?? 0;
+        if (count >= 2)
+        {
+            Crc = pk.ReadBytes(count - 2, 2).ToUInt16(0, false);
+            Payload = pk.Slice(0, count - 2);
+        }
 
         return true;
     }

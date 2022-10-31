@@ -48,4 +48,8 @@ public enum FunctionCodes : Byte
     /// <summary>读写多个保持寄存器</summary>
     [Description("23读写多个保持寄存器")]
     ReadWriteMultipleRegisters = 23,
+
+    /// <summary>读设备识别码</summary>
+    [Description("43读设备识别码")]
+    ReadDevId = 43,
 }

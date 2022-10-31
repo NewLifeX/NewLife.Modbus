@@ -19,8 +19,9 @@ public class ModbusRtuMessageTests
         Assert.False(msg.Reply);
         Assert.Equal(FunctionCodes.WriteCoil, msg.Code);
         Assert.Equal((ErrorCodes)0, msg.ErrorCode);
-        Assert.Equal(0x02, msg.Address);
-        Assert.Equal(0xFF00, msg.Payload.ToArray().ToUInt16(0, false));
+        Assert.Equal(0x02, msg.GetAddress());
+        Assert.Equal(0xFF00, msg.Payload.ReadBytes(2, 2).ToUInt16(0, false));
+        Assert.Equal(0x2DFA, msg.Crc);
     }
 
     [Fact]
@@ -33,10 +34,11 @@ public class ModbusRtuMessageTests
         Assert.NotNull(msg);
 
         Assert.Equal(1, msg.Host);
-        Assert.False(msg.Reply);
+        Assert.True(msg.Reply);
         Assert.Equal(FunctionCodes.WriteCoil, msg.Code);
         Assert.Equal((ErrorCodes)0, msg.ErrorCode);
-        Assert.Equal(0x02, msg.Address);
-        Assert.Equal(0xFF00, msg.Payload.ToArray().ToUInt16(0, false));
+        Assert.Equal(0x02, msg.GetAddress());
+        Assert.Equal(0x0000, msg.Payload.ReadBytes(2, 2).ToUInt16(0, false));
+        Assert.Equal(0x6C0A, msg.Crc);
     }
 }

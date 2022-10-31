@@ -42,45 +42,37 @@ public abstract class Modbus : DisposeBase
     /// <param name="host">主机。一般是1</param>
     /// <param name="code">功能码</param>
     /// <param name="address">地址。例如0x0002</param>
-    /// <param name="values">数据值</param>
+    /// <param name="value">数据值</param>
     /// <returns>返回响应消息的负载部分</returns>
-    public virtual Packet SendCommand(Byte host, FunctionCodes code, UInt16 address, params UInt16[] values)
+    public virtual Packet SendCommand(Byte host, FunctionCodes code, UInt16 address, UInt16 value)
     {
         var msg = CreateMessage();
         msg.Host = host;
         msg.Code = code;
-        msg.Address = address;
 
-        // 请求数据，地址与负载；响应数据没有地址只有负载
-        if (values.Length == 1)
-            msg.Payload = values[0].GetBytes(false);
-        else
-        {
-            // 多个UInt16数值，合并成为负载数据
-            var ms = new MemoryStream();
-            var binary = new Binary { Stream = ms, IsLittleEndian = false };
-            binary.Write((UInt16)values.Length);
-
-            //var buf = values.SelectMany(e => e.GetBytes(false)).ToArray();
-            //binary.Write((UInt16)(1 + buf.Length));
-            //binary.Write(buf, 0, buf.Length);
-
-            binary.Write((UInt16)(1 + values.Length * 2));
-            foreach (var item in values)
-            {
-                binary.Write(item);
-            }
-
-            // 直接使用内存流缓冲区，避免拷贝
-            ms.Position = 0;
-            msg.Payload = new Packet(ms);
-        }
+        msg.Set(address, value);
 
         var rs = SendCommand(msg);
 
         return rs?.Payload;
     }
 
+    /// <summary>发送命令，并接收返回</summary>
+    /// <param name="host">主机。一般是1</param>
+    /// <param name="code">功能码</param>
+    /// <param name="data">数据</param>
+    /// <returns>返回响应消息的负载部分</returns>
+    public virtual Packet SendCommand(Byte host, FunctionCodes code, Packet data)
+    {
+        var msg = CreateMessage();
+        msg.Host = host;
+        msg.Code = code;
+        msg.Payload = data;
+
+        var rs = SendCommand(msg);
+
+        return rs?.Payload;
+    }
     /// <summary>发送消息并接收返回</summary>
     /// <param name="message">Modbus消息</param>
     /// <returns></returns>
@@ -120,9 +112,7 @@ public abstract class Modbus : DisposeBase
         using var span = Tracer?.NewSpan("modbus:ReadCoil", $"host={host} address={address}/0x{address:X4} count={count}");
 
         var rs = SendCommand(host, FunctionCodes.ReadCoil, address, count);
-        if (rs == null) return null;
-
-        return rs;
+        return rs ?? null;
     }
 
     /// <summary>读离散量输入，0x02</summary>
@@ -135,9 +125,7 @@ public abstract class Modbus : DisposeBase
         using var span = Tracer?.NewSpan("modbus:ReadDiscrete", $"host={host} address={address}/0x{address:X4} count={count}");
 
         var rs = SendCommand(host, FunctionCodes.ReadDiscrete, address, count);
-        if (rs == null) return null;
-
-        return rs;
+        return rs ?? null;
     }
 
     /// <summary>读取保持寄存器，0x03</summary>
@@ -150,9 +138,7 @@ public abstract class Modbus : DisposeBase
         using var span = Tracer?.NewSpan("modbus:ReadRegister", $"host={host} address={address}/0x{address:X4} count={count}");
 
         var rs = SendCommand(host, FunctionCodes.ReadRegister, address, count);
-        if (rs == null) return null;
-
-        return rs;
+        return rs ?? null;
     }
 
     /// <summary>读取输入寄存器，0x04</summary>
@@ -165,9 +151,7 @@ public abstract class Modbus : DisposeBase
         using var span = Tracer?.NewSpan("modbus:ReadInput", $"host={host} address={address}/0x{address:X4} count={count}");
 
         var rs = SendCommand(host, FunctionCodes.ReadInput, address, count);
-        if (rs == null) return null;
-
-        return rs;
+        return rs ?? null;
     }
     #endregion
 
@@ -178,7 +162,7 @@ public abstract class Modbus : DisposeBase
     /// <param name="address">逻辑地址</param>
     /// <param name="values">待写入数值</param>
     /// <returns></returns>
-    public virtual Packet Write(FunctionCodes code, Byte host, UInt16 address, UInt16[] values)
+    public virtual Object Write(FunctionCodes code, Byte host, UInt16 address, UInt16[] values)
     {
         switch (code)
         {
@@ -219,9 +203,7 @@ public abstract class Modbus : DisposeBase
         using var span = Tracer?.NewSpan("modbus:WriteRegister", $"host={host} address={address}/0x{address:X4} value=0x{value:X4}");
 
         var rs = SendCommand(host, FunctionCodes.WriteRegister, address, value);
-        if (rs == null) return null;
-
-        return rs;
+        return rs ?? null;
     }
 
     /// <summary>写多个线圈，0x0F</summary>
@@ -229,14 +211,41 @@ public abstract class Modbus : DisposeBase
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="values">值。一般是 0xFF00/0x0000</param>
     /// <returns></returns>
-    public Packet WriteCoils(Byte host, UInt16 address, UInt16[] values)
+    public Int32 WriteCoils(Byte host, UInt16 address, UInt16[] values)
     {
         using var span = Tracer?.NewSpan("modbus:WriteCoils", $"host={host} address={address}/0x{address:X4} values={values.Join("-", e => e.ToString("X4"))}");
 
-        var rs = SendCommand(host, FunctionCodes.WriteCoils, address, values);
-        if (rs == null) return null;
+        // 多个UInt16数值，合并成为负载数据
+        var binary = new Binary { IsLittleEndian = false };
+        binary.Write(address);
+        binary.Write((UInt16)values.Length);
 
-        return rs;
+        // 字节数
+        binary.Write((Byte)Math.Ceiling(values.Length / 8.0));
+
+        // 数值转位
+        var b = 0;
+        var k = 0;
+        for (var i = 0; i < values.Length; i++)
+        {
+            if (values[i] != 0)
+                b |= 1 << k;
+
+            if (k++ >= 7)
+            {
+                b = 0;
+                k = 0;
+                binary.Write((Byte)b);
+            }
+        }
+        if (k > 0) binary.Write((Byte)b);
+
+        // 直接使用内存流缓冲区，避免拷贝
+        binary.Stream.Position = 0;
+        var pk = new Packet(binary.Stream);
+
+        var rs = SendCommand(host, FunctionCodes.WriteCoils, pk);
+        return rs == null || rs.Total < 4 ? -1 : rs.ReadBytes(2, 2).ToUInt16(0, false);
     }
 
     /// <summary>写多个保持寄存器，0x10</summary>
@@ -244,14 +253,27 @@ public abstract class Modbus : DisposeBase
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="values">数值</param>
     /// <returns></returns>
-    public Packet WriteRegisters(Byte host, UInt16 address, UInt16[] values)
+    public Int32 WriteRegisters(Byte host, UInt16 address, UInt16[] values)
     {
         using var span = Tracer?.NewSpan("modbus:WriteRegisters", $"host={host} address={address}/0x{address:X4} values={values.Join("-", e => e.ToString("X4"))}");
 
-        var rs = SendCommand(host, FunctionCodes.WriteRegisters, address, values);
-        if (rs == null) return null;
+        // 多个UInt16数值，合并成为负载数据
+        var binary = new Binary { IsLittleEndian = false };
+        binary.Write(address);
+        binary.Write((UInt16)values.Length);
 
-        return rs;
+        binary.Write((Byte)(values.Length * 2));
+        foreach (var item in values)
+        {
+            binary.Write(item);
+        }
+
+        // 直接使用内存流缓冲区，避免拷贝
+        binary.Stream.Position = 0;
+        var pk = new Packet(binary.Stream);
+
+        var rs = SendCommand(host, FunctionCodes.WriteRegisters, pk);
+        return rs == null || rs.Total < 4 ? -1 : rs.ReadBytes(2, 2).ToUInt16(0, false);
     }
     #endregion
 
