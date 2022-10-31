@@ -42,13 +42,16 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.numHost = new System.Windows.Forms.NumericUpDown();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.numDelay = new System.Windows.Forms.NumericUpDown();
+            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.btnCloseAll = new System.Windows.Forms.Button();
             this.btnOpenAll = new System.Windows.Forms.Button();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.numBaudrate)).BeginInit();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numHost)).BeginInit();
             this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numDelay)).BeginInit();
             this.SuspendLayout();
             // 
             // btnOpen1
@@ -228,6 +231,8 @@
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox2.Controls.Add(this.label1);
+            this.groupBox2.Controls.Add(this.numDelay);
             this.groupBox2.Controls.Add(this.richTextBox1);
             this.groupBox2.Controls.Add(this.btnCloseAll);
             this.groupBox2.Controls.Add(this.btnOpenAll);
@@ -248,6 +253,44 @@
             this.groupBox2.TabIndex = 12;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "功能区";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(268, 19);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(118, 24);
+            this.label1.TabIndex = 14;
+            this.label1.Text = "延时（毫秒）";
+            // 
+            // numDelay
+            // 
+            this.numDelay.Increment = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this.numDelay.Location = new System.Drawing.Point(268, 46);
+            this.numDelay.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.numDelay.Name = "numDelay";
+            this.numDelay.Size = new System.Drawing.Size(103, 30);
+            this.numDelay.TabIndex = 13;
+            this.numDelay.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // richTextBox1
+            // 
+            this.richTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.richTextBox1.Location = new System.Drawing.Point(7, 266);
+            this.richTextBox1.Name = "richTextBox1";
+            this.richTextBox1.Size = new System.Drawing.Size(591, 177);
+            this.richTextBox1.TabIndex = 10;
+            this.richTextBox1.Text = "";
             // 
             // btnCloseAll
             // 
@@ -273,17 +316,6 @@
             this.btnOpenAll.UseVisualStyleBackColor = true;
             this.btnOpenAll.Click += new System.EventHandler(this.btnOpenAll_Click);
             // 
-            // richTextBox1
-            // 
-            this.richTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.richTextBox1.Location = new System.Drawing.Point(7, 266);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(591, 177);
-            this.richTextBox1.TabIndex = 10;
-            this.richTextBox1.Text = "";
-            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
@@ -301,6 +333,8 @@
             this.groupBox1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.numHost)).EndInit();
             this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numDelay)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -324,5 +358,7 @@
         private Button btnOpenAll;
         private NumericUpDown numHost;
         private RichTextBox richTextBox1;
+        private NumericUpDown numDelay;
+        private Label label1;
     }
 }
