@@ -21,36 +21,53 @@ public class ModbusAsciiMessage : ModbusMessage
     /// <returns></returns>
     public override Boolean Read(Stream stream, Object context)
     {
-        var flag = stream.ReadByte();
-        if (flag != ':') return false;
+        var buf = stream.ReadBytes();
+        if (buf.Length < 1 + 2 + 2 + 2 || buf[0] != ':') return false;
+
+        // 找到结束符
+        var p = -1;
+        for (var i = 0; i < buf.Length - 1; i++)
+        {
+            if (buf[i] == '\r' && buf[i + 1] == '\n')
+            {
+                p = i;
+                break;
+            }
+        }
+        if (p < 0) return false;
 
         var ms = new MemoryStream();
-        while (true)
+        for (var i = 1; i < p - 2; i += 2)
         {
-            var a = stream.ReadByte();
-            var b = stream.ReadByte();
-            if (a < 0 || b < 0) break;
-            if (a == '\r' && b == '\n') break;
+            var a = (Char)buf[i];
+            var b = (Char)buf[i + 1];
 
-            if (a >= 'A')
-                a -= 'A';
-            else
-                a -= '0';
+            var a2 = (Int32)a;
+            if (a is >= 'A' and <= 'F')
+                a2 = a - 'A' + 10;
+            else if (a is >= '0' and <= '9')
+                a2 -= '0';
 
-            if (b >= 'A')
-                b -= 'A';
-            else
-                b -= '0';
+            var b2 = (Int32)b;
+            if (b is >= 'A' and <= 'F')
+                b2 = b - 'A' + 10;
+            else if (b is >= '0' and <= '9')
+                b2 -= '0';
 
-            ms.WriteByte((Byte)((a << 8) | b));
+            ms.WriteByte((Byte)((a2 << 4) | b2));
         }
+
+        Lrc = buf.ToUInt16(p - 2, true);
 
         ms.Position = 0;
         var binary = context as Binary ?? new Binary { Stream = ms, IsLittleEndian = false };
 
         if (!base.Read(ms, context ?? binary)) return false;
 
-        Lrc = binary.ReadUInt16();
+        ms.Position = 0;
+        var bt = ModbusHelper.Lrc(ms);
+        //var bt = ModbusHelper.Lrc(buf, 1, buf.Length - 1 - 2 - 2);
+        Lrc2 = ModbusHelper.GetAsciiBytes(bt).ToUInt16(0, true);
 
         return true;
     }
@@ -78,7 +95,7 @@ public class ModbusAsciiMessage : ModbusMessage
     {
         if (Reply) throw new InvalidOperationException();
 
-        var msg = new ModbusRtuMessage
+        var msg = new ModbusAsciiMessage
         {
             Reply = true,
             Host = Host,
@@ -87,5 +104,8 @@ public class ModbusAsciiMessage : ModbusMessage
 
         return msg;
     }
+    #endregion
+
+    #region 辅助
     #endregion
 }
