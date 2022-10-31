@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2022 NewLife</Copyright>
     <VersionPrefix>1.0</VersionPrefix>
@@ -11,18 +11,14 @@
     <FileVersion>$(Version)</FileVersion>
     <AssemblyVersion>$(VersionPrefix).*</AssemblyVersion>
     <Deterministic>false</Deterministic>
-    <OutputPath>..\Bin\Test</OutputPath>
+    <OutputPath>..\Bin\WinModbus</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EasyModbusTCP" Version="5.6.0" />
-    <PackageReference Include="NModbus" Version="3.0.72" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\NewLife.ModbusRTU\NewLife.ModbusRTU.csproj" />
-    <ProjectReference Include="..\NewLife.Modbus\NewLife.Modbus.csproj" />
   </ItemGroup>
 
 </Project>

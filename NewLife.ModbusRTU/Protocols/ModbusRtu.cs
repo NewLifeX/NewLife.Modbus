@@ -2,6 +2,8 @@
 using NewLife.Data;
 using NewLife.IoT.Protocols;
 using NewLife.IoT;
+using System.Diagnostics;
+using NewLife.Log;
 
 #if NETSTANDARD2_1_OR_GREATER
 using System.Buffers;
@@ -76,6 +78,9 @@ public class ModbusRtu : Modbus
     {
         Open();
 
+        // 清空缓冲区
+        _port.DiscardInBuffer();
+
         {
             Log?.Debug("=> {0}", message);
 
@@ -92,11 +97,11 @@ public class ModbusRtu : Modbus
 
             _port.Write(buf, 0, buf.Length);
 
-            Thread.Sleep(10);
+            Thread.Sleep(ByteTimeout);
         }
 
         // 串口速度较慢，等待收完数据
-        WaitMore(_port);
+        WaitMore(_port, 1 + 1 + 2);
 
         {
             using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
@@ -127,9 +132,7 @@ public class ModbusRtu : Modbus
                 Log?.Debug("<= {0}", rs);
 
                 // 检查功能码
-                if (rs.ErrorCode > 0) throw new ModbusException(rs.ErrorCode, rs.ErrorCode + "");
-
-                return rs;
+                return rs.ErrorCode > 0 ? throw new ModbusException(rs.ErrorCode, rs.ErrorCode + "") : (ModbusMessage)rs;
             }
             catch (Exception ex)
             {
@@ -146,19 +149,23 @@ public class ModbusRtu : Modbus
         }
     }
 
-    void WaitMore(SerialPort sp)
+    private void WaitMore(SerialPort sp, Int32 minLength)
     {
-        var ms = ByteTimeout;
-        var end = DateTime.Now.AddMilliseconds(ms);
         var count = sp.BytesToRead;
-        while (sp.IsOpen && end > DateTime.Now)
+        if (count >= minLength) return;
+
+        var ms = ByteTimeout;
+        var sw = Stopwatch.StartNew();
+        while (sp.IsOpen && sw.ElapsedMilliseconds < ms)
         {
             //Thread.SpinWait(1);
             Thread.Sleep(ms);
             if (count != sp.BytesToRead)
             {
-                end = DateTime.Now.AddMilliseconds(ms);
                 count = sp.BytesToRead;
+                if (count >= minLength) return;
+
+                sw.Restart();
             }
         }
     }
