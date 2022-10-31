@@ -1,4 +1,5 @@
 ﻿using System.IO.Ports;
+using NewLife;
 using NewLife.IoT.Protocols;
 using NewLife.Log;
 using NewLife.Serial.Protocols;
@@ -93,5 +94,26 @@ public partial class FrmMain : Form
         //    _modbus.WriteCoil(_host, (UInt16)i, 0);
         //}
         _modbus.WriteCoils(_host, 0, new UInt16[] { 0, 0, 0, 0, 0, 0, 0, 0 });
+    }
+
+    private void btnReadAll_Click(Object sender, EventArgs e)
+    {
+        _modbus.ReadCoil(_host, 0, 8);
+    }
+
+    private void btnReadAddr_Click(Object sender, EventArgs e)
+    {
+        var rs = _modbus.ReadRegister(_host, 0, 1);
+        if (rs == null || rs.Total < 3) return;
+
+        var addr = rs.ReadBytes(1).ToUInt16(0, false);
+        numAddr.Value = addr;
+    }
+
+    private void btnWriteAddr_Click(Object sender, EventArgs e)
+    {
+        var addr = (UInt16)numAddr.Value;
+
+        _modbus.WriteRegisters(_host, 0, new[] { addr });
     }
 }

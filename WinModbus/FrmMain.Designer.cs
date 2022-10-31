@@ -42,6 +42,10 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.numHost = new System.Windows.Forms.NumericUpDown();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.btnWriteAddr = new System.Windows.Forms.Button();
+            this.numAddr = new System.Windows.Forms.NumericUpDown();
+            this.btnReadAddr = new System.Windows.Forms.Button();
+            this.btnReadAll = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.numDelay = new System.Windows.Forms.NumericUpDown();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
@@ -51,6 +55,7 @@
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numHost)).BeginInit();
             this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numAddr)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numDelay)).BeginInit();
             this.SuspendLayout();
             // 
@@ -211,11 +216,6 @@
             0,
             0,
             0});
-            this.numHost.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
             this.numHost.Name = "numHost";
             this.numHost.Size = new System.Drawing.Size(78, 30);
             this.numHost.TabIndex = 10;
@@ -231,6 +231,10 @@
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox2.Controls.Add(this.btnWriteAddr);
+            this.groupBox2.Controls.Add(this.numAddr);
+            this.groupBox2.Controls.Add(this.btnReadAddr);
+            this.groupBox2.Controls.Add(this.btnReadAll);
             this.groupBox2.Controls.Add(this.label1);
             this.groupBox2.Controls.Add(this.numDelay);
             this.groupBox2.Controls.Add(this.richTextBox1);
@@ -253,6 +257,55 @@
             this.groupBox2.TabIndex = 12;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "功能区";
+            // 
+            // btnWriteAddr
+            // 
+            this.btnWriteAddr.Location = new System.Drawing.Point(405, 93);
+            this.btnWriteAddr.Margin = new System.Windows.Forms.Padding(4);
+            this.btnWriteAddr.Name = "btnWriteAddr";
+            this.btnWriteAddr.Size = new System.Drawing.Size(100, 50);
+            this.btnWriteAddr.TabIndex = 18;
+            this.btnWriteAddr.Tag = "1";
+            this.btnWriteAddr.Text = "写地址";
+            this.btnWriteAddr.UseVisualStyleBackColor = true;
+            this.btnWriteAddr.Click += new System.EventHandler(this.btnWriteAddr_Click);
+            // 
+            // numAddr
+            // 
+            this.numAddr.Location = new System.Drawing.Point(526, 46);
+            this.numAddr.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.numAddr.Name = "numAddr";
+            this.numAddr.Size = new System.Drawing.Size(78, 30);
+            this.numAddr.TabIndex = 17;
+            this.numAddr.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // btnReadAddr
+            // 
+            this.btnReadAddr.Location = new System.Drawing.Point(405, 35);
+            this.btnReadAddr.Margin = new System.Windows.Forms.Padding(4);
+            this.btnReadAddr.Name = "btnReadAddr";
+            this.btnReadAddr.Size = new System.Drawing.Size(100, 50);
+            this.btnReadAddr.TabIndex = 16;
+            this.btnReadAddr.Tag = "1";
+            this.btnReadAddr.Text = "读地址";
+            this.btnReadAddr.UseVisualStyleBackColor = true;
+            this.btnReadAddr.Click += new System.EventHandler(this.btnReadAddr_Click);
+            // 
+            // btnReadAll
+            // 
+            this.btnReadAll.Location = new System.Drawing.Point(268, 209);
+            this.btnReadAll.Margin = new System.Windows.Forms.Padding(4);
+            this.btnReadAll.Name = "btnReadAll";
+            this.btnReadAll.Size = new System.Drawing.Size(100, 50);
+            this.btnReadAll.TabIndex = 15;
+            this.btnReadAll.Tag = "1";
+            this.btnReadAll.Text = "读取状态";
+            this.btnReadAll.UseVisualStyleBackColor = true;
+            this.btnReadAll.Click += new System.EventHandler(this.btnReadAll_Click);
             // 
             // label1
             // 
@@ -294,7 +347,7 @@
             // 
             // btnCloseAll
             // 
-            this.btnCloseAll.Location = new System.Drawing.Point(425, 93);
+            this.btnCloseAll.Location = new System.Drawing.Point(268, 151);
             this.btnCloseAll.Margin = new System.Windows.Forms.Padding(4);
             this.btnCloseAll.Name = "btnCloseAll";
             this.btnCloseAll.Size = new System.Drawing.Size(100, 50);
@@ -306,7 +359,7 @@
             // 
             // btnOpenAll
             // 
-            this.btnOpenAll.Location = new System.Drawing.Point(425, 35);
+            this.btnOpenAll.Location = new System.Drawing.Point(268, 93);
             this.btnOpenAll.Margin = new System.Windows.Forms.Padding(4);
             this.btnOpenAll.Name = "btnOpenAll";
             this.btnOpenAll.Size = new System.Drawing.Size(100, 50);
@@ -334,6 +387,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numHost)).EndInit();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numAddr)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numDelay)).EndInit();
             this.ResumeLayout(false);
 
@@ -360,5 +414,9 @@
         private RichTextBox richTextBox1;
         private NumericUpDown numDelay;
         private Label label1;
+        private Button btnReadAll;
+        private Button btnWriteAddr;
+        private NumericUpDown numAddr;
+        private Button btnReadAddr;
     }
 }
