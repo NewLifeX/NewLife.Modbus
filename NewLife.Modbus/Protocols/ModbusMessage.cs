@@ -37,7 +37,7 @@ public class ModbusMessage : IAccessor
         var pk = Payload;
 
         if (!Reply && pk != null && Code <= FunctionCodes.WriteRegisters)
-            return $"{Code} (0x{GetAddress():X4}, {pk?.ToHex()})";
+            return $"{Code} (0x{GetAddress():X4}, {pk?.Slice(2).ToHex()})";
 
         return $"{Code} {pk?.ToHex()}";
     }
@@ -63,23 +63,6 @@ public class ModbusMessage : IAccessor
             ErrorCode = (ErrorCodes)binary.ReadByte();
             return true;
         }
-
-        //var remain = (Int32)(stream.Length - stream.Position);
-        //if (remain <= 0) return false;
-
-        //if (!Reply)
-        //{
-        //    // 请求数据，地址和负载
-        //    Address = binary.Read<UInt16>();
-        //    Payload = binary.ReadBytes(remain - 2);
-        //}
-        //else if (remain >= 1)
-        //{
-        //    //// 响应数据，长度和负载
-        //    //var len = binary.ReadByte();
-        //    //if (len <= remain - 1) Payload = binary.ReadBytes(len);
-        //    Payload = binary.ReadBytes(remain);
-        //}
 
         Payload = stream.ReadBytes();
 
@@ -121,18 +104,6 @@ public class ModbusMessage : IAccessor
 
         var pk = Payload;
         if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
-        //if (!Reply)
-        //{
-        //    // 请求数据，地址和负载
-        //    binary.Write(Address);
-        //    if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
-        //}
-        //else
-        //{
-        //    var len2 = (pk?.Total ?? 0);
-        //    binary.Write((Byte)len2);
-        //    if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
-        //}
 
         return true;
     }

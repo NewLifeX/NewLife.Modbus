@@ -22,6 +22,7 @@ public class ModbusRtuMessageTests
         Assert.Equal(0x02, msg.GetAddress());
         Assert.Equal(0xFF00, msg.Payload.ReadBytes(2, 2).ToUInt16(0, false));
         Assert.Equal(0x2DFA, msg.Crc);
+        Assert.Equal("WriteCoil (0x0002, FF00)", msg.ToString());
     }
 
     [Fact]
@@ -40,5 +41,6 @@ public class ModbusRtuMessageTests
         Assert.Equal(0x02, msg.GetAddress());
         Assert.Equal(0x0000, msg.Payload.ReadBytes(2, 2).ToUInt16(0, false));
         Assert.Equal(0x6C0A, msg.Crc);
+        Assert.Equal("WriteCoil 00020000", msg.ToString());
     }
 }
