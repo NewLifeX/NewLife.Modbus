@@ -233,9 +233,9 @@ public abstract class Modbus : DisposeBase
 
             if (k++ >= 7)
             {
+                binary.Write((Byte)b);
                 b = 0;
                 k = 0;
-                binary.Write((Byte)b);
             }
         }
         if (k > 0) binary.Write((Byte)b);
