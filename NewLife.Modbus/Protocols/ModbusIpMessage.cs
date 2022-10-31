@@ -54,11 +54,7 @@ public class ModbusIpMessage : ModbusMessage
         binary.Write(ProtocolId);
 
         var pk = Payload;
-        var len = 1 + 1;
-        if (!Reply)
-            len += 2 + (pk?.Total ?? 0);
-        else
-            len += 1 + (pk?.Total ?? 0);
+        var len = 2 + (pk?.Total ?? 0);
         binary.Write((UInt16)len);
 
         return base.Write(stream, context ?? binary);
