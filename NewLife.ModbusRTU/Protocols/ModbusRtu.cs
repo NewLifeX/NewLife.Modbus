@@ -21,8 +21,8 @@ public class ModbusRtu : Modbus
     /// <summary>波特率</summary>
     public Int32 Baudrate { get; set; } = 9600;
 
-    /// <summary>字节超时。数据包间隔，默认20ms</summary>
-    public Int32 ByteTimeout { get; set; } = 20;
+    ///// <summary>字节超时。数据包间隔，默认50ms</summary>
+    //public Int32 ByteTimeout { get; set; } = 50;
 
     private SerialPort _port;
     #endregion
@@ -97,7 +97,7 @@ public class ModbusRtu : Modbus
 
             _port.Write(buf, 0, buf.Length);
 
-            Thread.Sleep(ByteTimeout);
+            //Thread.Sleep(ByteTimeout);
         }
 
         // 串口速度较慢，等待收完数据
@@ -154,20 +154,24 @@ public class ModbusRtu : Modbus
         var count = sp.BytesToRead;
         if (count >= minLength) return;
 
-        var ms = ByteTimeout;
+        var n = 0;
+        var ms = Timeout;
         var sw = Stopwatch.StartNew();
         while (sp.IsOpen && sw.ElapsedMilliseconds < ms)
         {
+            n++;
             //Thread.SpinWait(1);
-            Thread.Sleep(ms);
+            Thread.Sleep(10);
             if (count != sp.BytesToRead)
             {
                 count = sp.BytesToRead;
-                if (count >= minLength) return;
+                if (count >= minLength) break;
 
                 sw.Restart();
             }
         }
+
+        XTrace.WriteLine("n={0} count={1}", n, count);
     }
 
     /// <summary>获取串口列表</summary>
