@@ -9,6 +9,9 @@ public class ModbusAsciiMessage : ModbusMessage
     #region 属性
     /// <summary>LRC校验</summary>
     public UInt16 Lrc { get; set; }
+
+    /// <summary>LRC校验</summary>
+    public UInt16 Lrc2 { get; set; }
     #endregion
 
     #region 方法

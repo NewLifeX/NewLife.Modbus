@@ -51,6 +51,7 @@ public class ModbusRtuDriver : ModbusDriver, IDriver
             Tracer = Tracer,
             Log = Log,
         };
+        if (p.ByteTimeout > 0) modbus.ByteTimeout = p.ByteTimeout;
         //modbus.Init(parameters);
 
         return modbus;
