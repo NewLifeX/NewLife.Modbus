@@ -51,6 +51,7 @@
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.btnCloseAll = new System.Windows.Forms.Button();
             this.btnOpenAll = new System.Windows.Forms.Button();
+            this.btnReadIn = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.numBaudrate)).BeginInit();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numHost)).BeginInit();
@@ -231,6 +232,7 @@
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox2.Controls.Add(this.btnReadIn);
             this.groupBox2.Controls.Add(this.btnWriteAddr);
             this.groupBox2.Controls.Add(this.numAddr);
             this.groupBox2.Controls.Add(this.btnReadAddr);
@@ -303,7 +305,7 @@
             this.btnReadAll.Size = new System.Drawing.Size(100, 50);
             this.btnReadAll.TabIndex = 15;
             this.btnReadAll.Tag = "1";
-            this.btnReadAll.Text = "读取状态";
+            this.btnReadAll.Text = "读继电器";
             this.btnReadAll.UseVisualStyleBackColor = true;
             this.btnReadAll.Click += new System.EventHandler(this.btnReadAll_Click);
             // 
@@ -369,6 +371,18 @@
             this.btnOpenAll.UseVisualStyleBackColor = true;
             this.btnOpenAll.Click += new System.EventHandler(this.btnOpenAll_Click);
             // 
+            // btnReadIn
+            // 
+            this.btnReadIn.Location = new System.Drawing.Point(405, 209);
+            this.btnReadIn.Margin = new System.Windows.Forms.Padding(4);
+            this.btnReadIn.Name = "btnReadIn";
+            this.btnReadIn.Size = new System.Drawing.Size(100, 50);
+            this.btnReadIn.TabIndex = 19;
+            this.btnReadIn.Tag = "1";
+            this.btnReadIn.Text = "读光耦";
+            this.btnReadIn.UseVisualStyleBackColor = true;
+            this.btnReadIn.Click += new System.EventHandler(this.btnReadIn_Click);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
@@ -418,5 +432,6 @@
         private Button btnWriteAddr;
         private NumericUpDown numAddr;
         private Button btnReadAddr;
+        private Button btnReadIn;
     }
 }

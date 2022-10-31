@@ -116,4 +116,9 @@ public partial class FrmMain : Form
 
         _modbus.WriteRegisters(_host, 0, new[] { addr });
     }
+
+    private void btnReadIn_Click(Object sender, EventArgs e)
+    {
+        _modbus.ReadDiscrete(_host, 0, 8);
+    }
 }
