@@ -7,10 +7,10 @@ using NewLife.Serialization;
 namespace NewLife.Serial.Drivers;
 
 /// <summary>
-/// ModbusRtu协议封装
+/// ModbusAscii协议封装
 /// </summary>
-[Driver("ModbusRTU")]
-public class ModbusRtuDriver : ModbusDriver, IDriver
+[Driver("ModbusASCII")]
+public class ModbusAsciiDriver : ModbusDriver, IDriver
 {
     #region 方法
     /// <summary>
@@ -43,7 +43,7 @@ public class ModbusRtuDriver : ModbusDriver, IDriver
 
         node.Parameter = p;
 
-        var modbus = new ModbusRtu
+        var modbus = new ModbusAscii
         {
             PortName = p.PortName,
             Baudrate = p.Baudrate,
