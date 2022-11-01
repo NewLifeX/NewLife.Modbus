@@ -17,6 +17,9 @@ public abstract class Modbus : DisposeBase
     /// <summary>缓冲区大小。默认256</summary>
     public Int32 BufferSize { get; set; } = 256;
 
+    /// <summary>校验响应数据长度。默认true</summary>
+    public Boolean ValidResponse { get; set; } = true;
+
     /// <summary>性能追踪器</summary>
     public ITracer Tracer { get; set; }
     #endregion
@@ -105,53 +108,85 @@ public abstract class Modbus : DisposeBase
     /// <summary>读取线圈，0x01</summary>
     /// <param name="host">主机。一般是1</param>
     /// <param name="address">地址。例如0x0002</param>
-    /// <param name="count">线圈个数</param>
-    /// <returns></returns>
+    /// <param name="count">线圈数量。一般要求8的倍数</param>
+    /// <returns>线圈状态字节数组</returns>
     public Packet ReadCoil(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadCoil", $"host={host} address={address}/0x{address:X4} count={count}");
 
         var rs = SendCommand(host, FunctionCodes.ReadCoil, address, count);
-        return rs ?? null;
+        if (rs == null) return null;
+
+        if (ValidResponse)
+        {
+            var len = rs[0];
+            if (rs.Total < 1 + len) return null;
+        }
+
+        return rs.Slice(1);
     }
 
     /// <summary>读离散量输入，0x02</summary>
     /// <param name="host">主机。一般是1</param>
     /// <param name="address">地址。例如0x0002</param>
-    /// <param name="count">寄存器个数。每个寄存器2个字节</param>
-    /// <returns></returns>
+    /// <param name="count">输入数量。一般要求8的倍数</param>
+    /// <returns>输入状态字节数组</returns>
     public Packet ReadDiscrete(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadDiscrete", $"host={host} address={address}/0x{address:X4} count={count}");
 
         var rs = SendCommand(host, FunctionCodes.ReadDiscrete, address, count);
-        return rs ?? null;
+        if (rs == null) return null;
+
+        if (ValidResponse)
+        {
+            var len = rs[0];
+            if (rs.Total < 1 + len) return null;
+        }
+
+        return rs.Slice(1);
     }
 
     /// <summary>读取保持寄存器，0x03</summary>
     /// <param name="host">主机。一般是1</param>
     /// <param name="address">地址。例如0x0002</param>
-    /// <param name="count">寄存器个数。每个寄存器2个字节</param>
-    /// <returns></returns>
+    /// <param name="count">寄存器数量。每个寄存器2个字节</param>
+    /// <returns>寄存器值数组</returns>
     public Packet ReadRegister(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadRegister", $"host={host} address={address}/0x{address:X4} count={count}");
 
         var rs = SendCommand(host, FunctionCodes.ReadRegister, address, count);
-        return rs ?? null;
+        if (rs == null) return null;
+
+        if (ValidResponse)
+        {
+            var len = rs[0];
+            if (rs.Total < 1 + len) return null;
+        }
+
+        return rs.Slice(1);
     }
 
     /// <summary>读取输入寄存器，0x04</summary>
     /// <param name="host">主机。一般是1</param>
     /// <param name="address">地址。例如0x0002</param>
-    /// <param name="count">寄存器个数。每个寄存器2个字节</param>
-    /// <returns></returns>
+    /// <param name="count">输入寄存器数量。每个寄存器2个字节</param>
+    /// <returns>输入寄存器值数组</returns>
     public Packet ReadInput(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadInput", $"host={host} address={address}/0x{address:X4} count={count}");
 
         var rs = SendCommand(host, FunctionCodes.ReadInput, address, count);
-        return rs ?? null;
+        if (rs == null) return null;
+
+        if (ValidResponse)
+        {
+            var len = rs[0];
+            if (rs.Total < 1 + len) return null;
+        }
+
+        return rs.Slice(1);
     }
     #endregion
 
@@ -180,37 +215,40 @@ public abstract class Modbus : DisposeBase
     /// <summary>写入单线圈，0x05</summary>
     /// <param name="host">主机。一般是1</param>
     /// <param name="address">地址。例如0x0002</param>
-    /// <param name="value">值。一般是 0xFF00/0x0000</param>
-    /// <returns></returns>
-    public Packet WriteCoil(Byte host, UInt16 address, UInt16 value)
+    /// <param name="value">输出值。一般是 0xFF00/0x0000</param>
+    /// <returns>输出值</returns>
+    public Int32 WriteCoil(Byte host, UInt16 address, UInt16 value)
     {
         using var span = Tracer?.NewSpan("modbus:WriteCoil", $"host={host} address={address}/0x{address:X4} value=0x{value:X4}");
 
         var rs = SendCommand(host, FunctionCodes.WriteCoil, address, value);
-        if (rs == null || rs.Total < 2) return null;
+        if (rs == null || rs.Total < 2) return -1;
 
         // 去掉2字节地址
-        return rs.Slice(2);
+        return rs.ReadBytes(2, 2).ToUInt16(0, false);
     }
 
     /// <summary>写入保持寄存器，0x06</summary>
     /// <param name="host">主机。一般是1</param>
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="value">数值</param>
-    /// <returns></returns>
-    public Packet WriteRegister(Byte host, UInt16 address, UInt16 value)
+    /// <returns>寄存器值</returns>
+    public Int32 WriteRegister(Byte host, UInt16 address, UInt16 value)
     {
         using var span = Tracer?.NewSpan("modbus:WriteRegister", $"host={host} address={address}/0x{address:X4} value=0x{value:X4}");
 
         var rs = SendCommand(host, FunctionCodes.WriteRegister, address, value);
-        return rs ?? null;
+        if (rs == null || rs.Total < 2) return -1;
+
+        // 去掉2字节地址
+        return rs.ReadBytes(2, 2).ToUInt16(0, false);
     }
 
     /// <summary>写多个线圈，0x0F</summary>
     /// <param name="host">主机。一般是1</param>
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="values">值。一般是 0xFF00/0x0000</param>
-    /// <returns></returns>
+    /// <returns>数量</returns>
     public Int32 WriteCoils(Byte host, UInt16 address, UInt16[] values)
     {
         using var span = Tracer?.NewSpan("modbus:WriteCoils", $"host={host} address={address}/0x{address:X4} values={values.Join("-", e => e.ToString("X4"))}");
@@ -245,14 +283,17 @@ public abstract class Modbus : DisposeBase
         var pk = new Packet(binary.Stream);
 
         var rs = SendCommand(host, FunctionCodes.WriteCoils, pk);
-        return rs == null || rs.Total < 4 ? -1 : rs.ReadBytes(2, 2).ToUInt16(0, false);
+        if (rs == null || rs.Total < 4) return -1;
+
+        // 去掉2字节地址
+        return rs.ReadBytes(2, 2).ToUInt16(0, false);
     }
 
     /// <summary>写多个保持寄存器，0x10</summary>
     /// <param name="host">主机。一般是1</param>
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="values">数值</param>
-    /// <returns></returns>
+    /// <returns>寄存器数量</returns>
     public Int32 WriteRegisters(Byte host, UInt16 address, UInt16[] values)
     {
         using var span = Tracer?.NewSpan("modbus:WriteRegisters", $"host={host} address={address}/0x{address:X4} values={values.Join("-", e => e.ToString("X4"))}");
@@ -273,7 +314,10 @@ public abstract class Modbus : DisposeBase
         var pk = new Packet(binary.Stream);
 
         var rs = SendCommand(host, FunctionCodes.WriteRegisters, pk);
-        return rs == null || rs.Total < 4 ? -1 : rs.ReadBytes(2, 2).ToUInt16(0, false);
+        if (rs == null || rs.Total < 4) return -1;
+
+        // 去掉2字节地址
+        return rs.ReadBytes(2, 2).ToUInt16(0, false);
     }
     #endregion
 
