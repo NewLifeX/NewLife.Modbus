@@ -140,16 +140,36 @@ public class ModbusMessage : IAccessor
     /// <returns></returns>
     public UInt16 GetAddress() => Payload?.ReadBytes(0, 2).ToUInt16(0, false) ?? 0;
 
-    /// <summary>设置地址和数值，填充负载数据</summary>
-    /// <param name="address"></param>
-    /// <param name="value"></param>
-    public void Set(UInt16 address, UInt16 value)
+    /// <summary>获取请求地址和数值</summary>
+    /// <returns></returns>
+    public (UInt16 address, UInt16 count) GetRequest()
+    {
+        var pk = Payload;
+        var address = pk.ReadBytes(0, 2).ToUInt16(0, false);
+        var count = pk.ReadBytes(2, 2).ToUInt16(0, false);
+
+        return (address, count);
+    }
+
+    /// <summary>设置请求地址和数值，填充负载数据</summary>
+    /// <param name="address">地址</param>
+    /// <param name="count">寄存器个数</param>
+    public void SetRequest(UInt16 address, UInt16 count)
     {
         var buf = new Byte[4];
         buf.Write(address, 0, false);
-        buf.Write(value, 2, false);
+        buf.Write(count, 2, false);
 
         Payload = buf;
+    }
+
+    /// <summary>设置请求地址和数据，填充负载数据</summary>
+    /// <param name="address"></param>
+    /// <param name="data"></param>
+    public void SetRequest(UInt16 address, Packet data)
+    {
+        Payload = new Packet(address.GetBytes(false));
+        Payload.Append(data);
     }
     #endregion
 }

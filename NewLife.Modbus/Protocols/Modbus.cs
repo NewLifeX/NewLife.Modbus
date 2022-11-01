@@ -50,7 +50,7 @@ public abstract class Modbus : DisposeBase
         msg.Host = host;
         msg.Code = code;
 
-        msg.Set(address, value);
+        msg.SetRequest(address, value);
 
         var rs = SendCommand(msg);
 

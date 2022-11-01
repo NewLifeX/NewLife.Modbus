@@ -101,7 +101,7 @@ public class ModbusAsciiMessageTests
     {
         var msg = new ModbusAsciiMessage { Code = FunctionCodes.WriteRegister };
 
-        msg.Set(0x0002, 0xABCD);
+        msg.SetRequest(0x0002, 0xABCD);
 
         Assert.Equal("00-02-AB-CD", msg.Payload.ToHex(256, "-"));
     }
