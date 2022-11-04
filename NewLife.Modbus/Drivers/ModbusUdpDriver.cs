@@ -6,7 +6,7 @@ namespace NewLife.IoT.Drivers;
 
 /// <summary>UDP网络版Modbus</summary>
 [Driver("ModbusUdp")]
-[DisplayName("UDP网络版Modbus")]
+[DisplayName("UDP网络版ModbusUdp")]
 public class ModbusUdpDriver : ModbusDriver, IDriver
 {
     #region 方法

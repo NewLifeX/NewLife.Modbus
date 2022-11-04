@@ -6,7 +6,7 @@ namespace NewLife.IoT.Drivers;
 
 /// <summary>TCP网络版Modbus</summary>
 [Driver("ModbusTcp")]
-[DisplayName("TCP网络版Modbus")]
+[DisplayName("TCP网络版ModbusTcp")]
 public class ModbusTcpDriver : ModbusDriver, IDriver
 {
     #region 方法

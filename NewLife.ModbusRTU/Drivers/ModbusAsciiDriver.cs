@@ -9,7 +9,7 @@ namespace NewLife.Serial.Drivers;
 /// <summary>
 /// ModbusAscii协议封装
 /// </summary>
-[Driver("ModbusASCII")]
+[Driver("串口ModbusASCII")]
 public class ModbusAsciiDriver : ModbusDriver, IDriver
 {
     #region 方法

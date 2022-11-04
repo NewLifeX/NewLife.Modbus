@@ -9,7 +9,7 @@ namespace NewLife.Serial.Drivers;
 /// <summary>
 /// ModbusRtu协议封装
 /// </summary>
-[Driver("ModbusRTU")]
+[Driver("串口ModbusRTU")]
 public class ModbusRtuDriver : ModbusDriver, IDriver
 {
     #region 方法
