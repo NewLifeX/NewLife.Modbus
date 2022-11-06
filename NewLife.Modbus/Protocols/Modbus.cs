@@ -1,6 +1,9 @@
-﻿using NewLife.Data;
+﻿using System.Runtime.CompilerServices;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Serialization;
+
+[assembly:InternalsVisibleTo("XUnitTest, PublicKey=00240000048000001401000006020000002400005253413100080000010001000d41eb3bdab5c2150958b46c95632b7e4dcb0af77ed8637bd8543875bc2443d01273143bb46655a48a92efa76251adc63ccca6d0e9cef2e0ce93e32b5043bea179a6c710981be4a71703a03e10960643f7df091f499cf60183ef0e4e4e2eebf26e25cea0eebf87c8a6d7f8130c283fc3f747cb90623f0aaa619825e3fcd82f267a0f4bfd26c9f2a6b5a62a6b180b4f6d1d091fce6bd60a9aa9aa5b815b833b44e0f2e58b28a354cb20f52f31bb3b3a7c54f515426537e41f9c20c07e51f9cab8abc311daac19a41bd473a51c7386f014edf1863901a5c29addc89da2f2659c9c1e95affd6997396b9680e317c493e974a813186da277ff9c1d1b30e33cb5a2f6")]
 
 namespace NewLife.IoT.Protocols;
 
@@ -80,7 +83,7 @@ public abstract class Modbus : DisposeBase
     /// <summary>发送消息并接收返回</summary>
     /// <param name="message">Modbus消息</param>
     /// <returns></returns>
-    protected abstract ModbusMessage SendCommand(ModbusMessage message);
+    internal protected abstract ModbusMessage SendCommand(ModbusMessage message);
     #endregion
 
     #region 读取
@@ -227,7 +230,7 @@ public abstract class Modbus : DisposeBase
         using var span = Tracer?.NewSpan("modbus:WriteCoil", $"host={host} address={address}/0x{address:X4} value=0x{value:X4}");
 
         var rs = SendCommand(FunctionCodes.WriteCoil, host, address, value);
-        if (rs == null || rs.Total < 2) return -1;
+        if (rs == null || rs.Total < 4) return -1;
 
         // 去掉2字节地址
         return rs.ReadBytes(2, 2).ToUInt16(0, false);
@@ -243,7 +246,7 @@ public abstract class Modbus : DisposeBase
         using var span = Tracer?.NewSpan("modbus:WriteRegister", $"host={host} address={address}/0x{address:X4} value=0x{value:X4}");
 
         var rs = SendCommand(FunctionCodes.WriteRegister, host, address, value);
-        if (rs == null || rs.Total < 2) return -1;
+        if (rs == null || rs.Total < 4) return -1;
 
         // 去掉2字节地址
         return rs.ReadBytes(2, 2).ToUInt16(0, false);

@@ -104,6 +104,7 @@ public class ModbusMessage : IAccessor
 
         var pk = Payload;
         if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
+        //Payload?.CopyTo(binary.Stream);
 
         return true;
     }

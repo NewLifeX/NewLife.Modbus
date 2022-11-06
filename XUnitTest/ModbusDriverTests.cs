@@ -227,9 +227,9 @@ public class ModbusDriverTests
         //mb.Setup(e => e.Read(FunctionCodes.ReadRegister, 1, 100, 1))
         //    .Returns("01-02-00".ToHex());
         mb.Setup(e => e.SendCommand(FunctionCodes.ReadRegister, 1, 100, 1))
-            .Returns("01-02-00".ToHex());
+            .Returns("02-02-00".ToHex());
         mb.Setup(e => e.SendCommand(FunctionCodes.ReadRegister, 1, 102, 1))
-            .Returns("01-05-00".ToHex());
+            .Returns("02-05-00".ToHex());
         driver.Modbus = mb.Object;
 
         var points = new List<IPoint>

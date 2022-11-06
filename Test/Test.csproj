@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="EasyModbusTCP" Version="5.6.0" />
+    <PackageReference Include="NewLife.Core" Version="10.0.2022.1106-beta1432" />
     <PackageReference Include="NModbus" Version="3.0.72" />
   </ItemGroup>
 

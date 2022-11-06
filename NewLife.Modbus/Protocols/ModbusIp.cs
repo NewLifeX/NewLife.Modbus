@@ -110,7 +110,7 @@ public abstract class ModbusIp : Modbus
     /// <summary>发送消息并接收返回</summary>
     /// <param name="message">Modbus消息</param>
     /// <returns></returns>
-    protected override ModbusMessage SendCommand(ModbusMessage message)
+    internal protected override ModbusMessage SendCommand(ModbusMessage message)
     {
         Open();
 

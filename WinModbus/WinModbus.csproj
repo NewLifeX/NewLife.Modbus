@@ -18,6 +18,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NewLife.Core" Version="10.0.2022.1106-beta1432" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\NewLife.ModbusRTU\NewLife.ModbusRTU.csproj" />
   </ItemGroup>
 

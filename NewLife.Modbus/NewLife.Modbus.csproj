@@ -41,10 +41,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="NewLife.Core" Version="10.0.2022.1106-beta1432" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NewLife.IoT" Version="1.5.2022.1101" />
+    <PackageReference Include="NewLife.IoT" Version="1.5.2022.1105-beta0231" />
   </ItemGroup>
 
   <ItemGroup>
