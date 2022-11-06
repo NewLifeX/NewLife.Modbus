@@ -330,4 +330,37 @@ public class ModbusDriverTests
         Assert.Equal(0x0200, (rs["调节池运行时间"] as Byte[]).ToUInt16(0, false));
         Assert.Equal(0x0500, (rs["调节池停止时间"] as Byte[]).ToUInt16(0, false));
     }
+
+    [Fact]
+    public void Write()
+    {
+        var mockModbus = new Mock<Modbus> { CallBase = true };
+        mockModbus.Setup(e => e.SendCommand(It.IsAny<ModbusMessage>()))
+            .Returns<ModbusMessage>(e => new ModbusMessage
+            {
+                Reply = true,
+                Host = e.Host,
+                Code = e.Code,
+                Payload = e.Payload.Slice(0, 2).Append(e.Payload.Slice(2, 2))
+            });
+
+        var mockDriver = new Mock<ModbusDriver> { CallBase = true };
+        mockDriver.Setup(e => e.CreateModbus(It.IsAny<IDevice>(), It.IsAny<ModbusNode>(), It.IsAny<IDictionary<String, Object>>()))
+            .Returns(mockModbus.Object);
+
+        var driver = mockDriver.Object;
+
+        var node = driver.Open(null, new ModbusParameter());
+
+        var pt = new PointModel
+        {
+            Name = "调节池运行时间",
+            Address = "4x100",
+            Type = "short",
+            Length = 2
+        };
+
+        var rs = (Int32)driver.Write(node, pt, "15");
+        Assert.Equal(0x000F, rs);
+    }
 }
