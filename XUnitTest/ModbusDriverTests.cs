@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using NewLife;
+using NewLife.IoT;
 using NewLife.IoT.Drivers;
 using NewLife.IoT.Protocols;
 using NewLife.IoT.ThingModels;
@@ -115,6 +116,79 @@ public class ModbusDriverTests
             var name = "p" + i;
             Assert.True(rs.ContainsKey(name));
         }
+    }
+
+    [Fact]
+    public void BuildSegments()
+    {
+        var mockModbus = new Mock<Modbus> { CallBase = true };
+
+        var mockDriver = new Mock<ModbusDriver> { CallBase = true };
+        mockDriver.Setup(e => e.CreateModbus(It.IsAny<IDevice>(), It.IsAny<ModbusNode>(), It.IsAny<IDictionary<String, Object>>()))
+            .Returns(mockModbus.Object);
+
+        var driver = mockDriver.Object;
+
+        // 10个点位
+        var points = new List<IPoint>();
+        for (var i = 0; i < 10; i++)
+        {
+            var pt = new PointModel
+            {
+                Name = "p" + i,
+                Address = i + "",
+                Length = 2
+            };
+
+            points.Add(pt);
+        }
+
+        // 凑批成为一个
+        var segs = driver.BuildSegments(points, new ModbusParameter());
+        Assert.Equal(1, segs.Count);
+        Assert.Equal(0, segs[0].Address);
+        Assert.Equal(10, segs[0].Count);
+
+        // 每4个一批，凑成3批
+        segs = driver.BuildSegments(points, new ModbusParameter { BatchSize = 4 });
+        Assert.Equal(3, segs.Count);
+        Assert.Equal(4, segs[1].Address);
+        Assert.Equal(4, segs[1].Count);
+    }
+
+    [Fact]
+    public void BuildSegmentsOnCoil()
+    {
+        var mockModbus = new Mock<Modbus> { CallBase = true };
+
+        var mockDriver = new Mock<ModbusDriver> { CallBase = true };
+        mockDriver.Setup(e => e.CreateModbus(It.IsAny<IDevice>(), It.IsAny<ModbusNode>(), It.IsAny<IDictionary<String, Object>>()))
+            .Returns(mockModbus.Object);
+
+        var driver = mockDriver.Object;
+
+        // 10个点位
+        var points = new List<IPoint>
+        {
+            new PointModel { Name = "p0", Address = "0x00", },
+            new PointModel { Name = "p2", Address = "0x02", },
+            new PointModel { Name = "p4", Address = "0x04", },
+            new PointModel { Name = "p8", Address = "0x08", },
+            new PointModel { Name = "p16", Address = "0x10", },
+            new PointModel { Name = "p20", Address = "0x14", }
+        };
+
+        // 凑批成为一个
+        var segs = driver.BuildSegments(points, new ModbusParameter());
+        Assert.Equal(1, segs.Count);
+        Assert.Equal(0, segs[0].Address);
+        Assert.Equal(15, segs[0].Count);
+
+        // 每4个一批，凑成3批
+        segs = driver.BuildSegments(points, new ModbusParameter { BatchSize = 4 });
+        Assert.Equal(2, segs.Count);
+        Assert.Equal(10, segs[1].Address);
+        Assert.Equal(5, segs[1].Count);
     }
 
     [Fact]

@@ -30,7 +30,7 @@ public class ModbusRtuOverTcpDriver : ModbusDriver, IDriver
     /// <param name="node">设备节点</param>
     /// <param name="parameters">参数</param>
     /// <returns></returns>
-    protected override Modbus CreateModbus(IDevice device, ModbusNode node, IDictionary<String, Object> parameters)
+    internal protected override Modbus CreateModbus(IDevice device, ModbusNode node, IDictionary<String, Object> parameters)
     {
         var p = JsonHelper.Convert<ModbusIpParameter>(parameters);
         if (p.Server.IsNullOrEmpty()) throw new ArgumentException("参数中未指定地址Server");

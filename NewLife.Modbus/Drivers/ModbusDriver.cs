@@ -46,7 +46,7 @@ public abstract class ModbusDriver : DriverBase
     /// <param name="node">设备节点</param>
     /// <param name="parameters">参数</param>
     /// <returns></returns>
-    protected abstract Modbus CreateModbus(IDevice device, ModbusNode node, IDictionary<String, Object> parameters);
+    internal protected abstract Modbus CreateModbus(IDevice device, ModbusNode node, IDictionary<String, Object> parameters);
 
     /// <summary>
     /// 打开通道。一个ModbusTcp设备可能分为多个通道读取，需要共用Tcp连接，以不同节点区分
@@ -160,7 +160,7 @@ public abstract class ModbusDriver : DriverBase
         return Dispatch(points, list);
     }
 
-    private IList<Segment> BuildSegments(IPoint[] points, ModbusParameter p)
+    internal IList<Segment> BuildSegments(IList<IPoint> points, ModbusParameter p)
     {
         // 组合多个片段，减少读取次数
         var list = new List<Segment>();
@@ -191,7 +191,15 @@ public abstract class ModbusDriver : DriverBase
             var cur = list[i];
 
             // 前一段末尾碰到了当前段开始，可以合并
-            if (prv.Address + prv.Count >= cur.Address && prv.ReadCode == cur.ReadCode)
+            var flag = prv.Address + prv.Count >= cur.Address;
+            // 如果是读取线圈，间隔小于8都可以合并
+            if (!flag && cur.ReadCode == FunctionCodes.ReadCoil)
+            {
+                flag = prv.Address + prv.Count + 8 > cur.Address;
+            }
+
+            // 前一段末尾碰到了当前段开始，可以合并
+            if (flag && prv.ReadCode == cur.ReadCode)
             {
                 if (p.BatchSize <= 0 || k < p.BatchSize)
                 {
@@ -222,7 +230,7 @@ public abstract class ModbusDriver : DriverBase
         return rs;
     }
 
-    private IDictionary<String, Object> Dispatch(IPoint[] points, IList<Segment> segments)
+    internal IDictionary<String, Object> Dispatch(IPoint[] points, IList<Segment> segments)
     {
         var dic = new Dictionary<String, Object>();
         if (segments == null || segments.Count == 0) return dic;
@@ -264,7 +272,7 @@ public abstract class ModbusDriver : DriverBase
     }
 
     [DebuggerDisplay("{ReadCode}({Address}, {Count})")]
-    private class Segment
+    internal class Segment
     {
         public FunctionCodes ReadCode { get; set; }
         public Int32 Address { get; set; }
