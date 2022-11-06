@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using NewLife;
@@ -210,5 +211,49 @@ public class ModbusDriverTests
             var name = "p" + i;
             Assert.True(rs.ContainsKey(name));
         }
+    }
+
+    [Fact]
+    public void ReadRegister()
+    {
+        var driver = new ModbusTcpDriver();
+
+        var p = driver.GetDefaultParameter() as ModbusParameter;
+
+        var node = driver.Open(null, p);
+
+        // 模拟Modbus
+        var mb = new Mock<Modbus>() { CallBase = true };
+        //mb.Setup(e => e.Read(FunctionCodes.ReadRegister, 1, 100, 1))
+        //    .Returns("01-02-00".ToHex());
+        mb.Setup(e => e.SendCommand(FunctionCodes.ReadRegister, 1, 100, 1))
+            .Returns("01-02-00".ToHex());
+        mb.Setup(e => e.SendCommand(FunctionCodes.ReadRegister, 1, 102, 1))
+            .Returns("01-05-00".ToHex());
+        driver.Modbus = mb.Object;
+
+        var points = new List<IPoint>
+        {
+            new PointModel
+            {
+                Name = "调节池运行时间",
+                Address = "4x100",
+                Length = 2
+            },
+            new PointModel
+            {
+                Name = "调节池停止时间",
+                Address = "4x102",
+                Length = 2
+            }
+        };
+
+        // 读取
+        var rs = driver.Read(node, points.ToArray());
+        Assert.NotNull(rs);
+        Assert.Equal(2, rs.Count);
+
+        Assert.Equal(0x0200, (rs["调节池运行时间"] as Byte[]).ToUInt16(0, false));
+        Assert.Equal(0x0500, (rs["调节池停止时间"] as Byte[]).ToUInt16(0, false));
     }
 }

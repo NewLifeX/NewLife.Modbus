@@ -42,12 +42,12 @@ public abstract class Modbus : DisposeBase
     protected virtual ModbusMessage CreateMessage() => new();
 
     /// <summary>发送命令，并接收返回</summary>
-    /// <param name="host">主机。一般是1</param>
     /// <param name="code">功能码</param>
+    /// <param name="host">主机。一般是1</param>
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="value">数据值</param>
     /// <returns>返回响应消息的负载部分</returns>
-    public virtual Packet SendCommand(Byte host, FunctionCodes code, UInt16 address, UInt16 value)
+    public virtual Packet SendCommand(FunctionCodes code, Byte host, UInt16 address, UInt16 value)
     {
         var msg = CreateMessage();
         msg.Host = host;
@@ -61,11 +61,11 @@ public abstract class Modbus : DisposeBase
     }
 
     /// <summary>发送命令，并接收返回</summary>
-    /// <param name="host">主机。一般是1</param>
     /// <param name="code">功能码</param>
+    /// <param name="host">主机。一般是1</param>
     /// <param name="data">数据</param>
     /// <returns>返回响应消息的负载部分</returns>
-    public virtual Packet SendCommand(Byte host, FunctionCodes code, Packet data)
+    public virtual Packet SendCommand(FunctionCodes code, Byte host, Packet data)
     {
         var msg = CreateMessage();
         msg.Host = host;
@@ -76,6 +76,7 @@ public abstract class Modbus : DisposeBase
 
         return rs?.Payload;
     }
+
     /// <summary>发送消息并接收返回</summary>
     /// <param name="message">Modbus消息</param>
     /// <returns></returns>
@@ -114,16 +115,17 @@ public abstract class Modbus : DisposeBase
     {
         using var span = Tracer?.NewSpan("modbus:ReadCoil", $"host={host} address={address}/0x{address:X4} count={count}");
 
-        var rs = SendCommand(host, FunctionCodes.ReadCoil, address, count);
+        var rs = SendCommand(FunctionCodes.ReadCoil, host, address, count);
         if (rs == null) return null;
 
+        var len = -1;
         if (ValidResponse)
         {
-            var len = rs[0];
+            len = rs[0];
             if (rs.Total < 1 + len) return null;
         }
 
-        return rs.Slice(1);
+        return rs.Slice(1, len);
     }
 
     /// <summary>读离散量输入，0x02</summary>
@@ -135,16 +137,17 @@ public abstract class Modbus : DisposeBase
     {
         using var span = Tracer?.NewSpan("modbus:ReadDiscrete", $"host={host} address={address}/0x{address:X4} count={count}");
 
-        var rs = SendCommand(host, FunctionCodes.ReadDiscrete, address, count);
+        var rs = SendCommand(FunctionCodes.ReadDiscrete, host, address, count);
         if (rs == null) return null;
 
+        var len = -1;
         if (ValidResponse)
         {
-            var len = rs[0];
+            len = rs[0];
             if (rs.Total < 1 + len) return null;
         }
 
-        return rs.Slice(1);
+        return rs.Slice(1, len);
     }
 
     /// <summary>读取保持寄存器，0x03</summary>
@@ -156,16 +159,17 @@ public abstract class Modbus : DisposeBase
     {
         using var span = Tracer?.NewSpan("modbus:ReadRegister", $"host={host} address={address}/0x{address:X4} count={count}");
 
-        var rs = SendCommand(host, FunctionCodes.ReadRegister, address, count);
+        var rs = SendCommand(FunctionCodes.ReadRegister, host, address, count);
         if (rs == null) return null;
 
+        var len = -1;
         if (ValidResponse)
         {
-            var len = rs[0];
+            len = rs[0];
             if (rs.Total < 1 + len) return null;
         }
 
-        return rs.Slice(1);
+        return rs.Slice(1, len);
     }
 
     /// <summary>读取输入寄存器，0x04</summary>
@@ -177,16 +181,17 @@ public abstract class Modbus : DisposeBase
     {
         using var span = Tracer?.NewSpan("modbus:ReadInput", $"host={host} address={address}/0x{address:X4} count={count}");
 
-        var rs = SendCommand(host, FunctionCodes.ReadInput, address, count);
+        var rs = SendCommand(FunctionCodes.ReadInput, host, address, count);
         if (rs == null) return null;
 
+        var len = -1;
         if (ValidResponse)
         {
-            var len = rs[0];
+            len = rs[0];
             if (rs.Total < 1 + len) return null;
         }
 
-        return rs.Slice(1);
+        return rs.Slice(1, len);
     }
     #endregion
 
@@ -221,7 +226,7 @@ public abstract class Modbus : DisposeBase
     {
         using var span = Tracer?.NewSpan("modbus:WriteCoil", $"host={host} address={address}/0x{address:X4} value=0x{value:X4}");
 
-        var rs = SendCommand(host, FunctionCodes.WriteCoil, address, value);
+        var rs = SendCommand(FunctionCodes.WriteCoil, host, address, value);
         if (rs == null || rs.Total < 2) return -1;
 
         // 去掉2字节地址
@@ -237,7 +242,7 @@ public abstract class Modbus : DisposeBase
     {
         using var span = Tracer?.NewSpan("modbus:WriteRegister", $"host={host} address={address}/0x{address:X4} value=0x{value:X4}");
 
-        var rs = SendCommand(host, FunctionCodes.WriteRegister, address, value);
+        var rs = SendCommand(FunctionCodes.WriteRegister, host, address, value);
         if (rs == null || rs.Total < 2) return -1;
 
         // 去掉2字节地址
@@ -282,7 +287,7 @@ public abstract class Modbus : DisposeBase
         binary.Stream.Position = 0;
         var pk = new Packet(binary.Stream);
 
-        var rs = SendCommand(host, FunctionCodes.WriteCoils, pk);
+        var rs = SendCommand(FunctionCodes.WriteCoils, host, pk);
         if (rs == null || rs.Total < 4) return -1;
 
         // 去掉2字节地址
@@ -313,7 +318,7 @@ public abstract class Modbus : DisposeBase
         binary.Stream.Position = 0;
         var pk = new Packet(binary.Stream);
 
-        var rs = SendCommand(host, FunctionCodes.WriteRegisters, pk);
+        var rs = SendCommand(FunctionCodes.WriteRegisters, host, pk);
         if (rs == null || rs.Total < 4) return -1;
 
         // 去掉2字节地址
