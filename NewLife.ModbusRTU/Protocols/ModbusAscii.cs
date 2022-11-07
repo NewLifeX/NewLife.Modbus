@@ -105,11 +105,7 @@ public class ModbusAscii : Modbus
 
         {
             using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
-#if NETSTANDARD2_1_OR_GREATER
-            var buf = ArrayPool<Byte>.Shared.Rent(BufferSize);
-#else
             var buf = new Byte[BufferSize];
-#endif
             try
             {
                 var count = _port.Read(buf, 0, buf.Length);
@@ -139,12 +135,6 @@ public class ModbusAscii : Modbus
                 span?.SetError(ex, null);
                 if (ex is TimeoutException) return null;
                 throw;
-            }
-            finally
-            {
-#if NETSTANDARD2_1_OR_GREATER
-                ArrayPool<Byte>.Shared.Return(buf);
-#endif
             }
         }
     }
