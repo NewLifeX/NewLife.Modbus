@@ -1,4 +1,5 @@
-﻿using NewLife.IoT;
+﻿using System.ComponentModel;
+using NewLife.IoT;
 using NewLife.IoT.Drivers;
 using NewLife.IoT.Protocols;
 using NewLife.Serial.Protocols;
@@ -9,7 +10,8 @@ namespace NewLife.Serial.Drivers;
 /// <summary>
 /// ModbusAscii协议封装
 /// </summary>
-[Driver("串口ModbusASCII")]
+[Driver("ModbusASCII")]
+[DisplayName("串口ModbusASCII")]
 public class ModbusAsciiDriver : ModbusDriver, IDriver
 {
     #region 方法

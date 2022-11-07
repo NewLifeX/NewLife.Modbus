@@ -154,12 +154,10 @@ public class ModbusAscii : Modbus
         var count = sp.BytesToRead;
         if (count >= minLength) return;
 
-        var n = 0;
         var ms = Timeout;
         var sw = Stopwatch.StartNew();
         while (sp.IsOpen && sw.ElapsedMilliseconds < ms)
         {
-            n++;
             //Thread.SpinWait(1);
             Thread.Sleep(10);
             if (count != sp.BytesToRead)
@@ -170,8 +168,6 @@ public class ModbusAscii : Modbus
                 sw.Restart();
             }
         }
-
-        XTrace.WriteLine("n={0} count={1}", n, count);
     }
 
     /// <summary>获取串口列表</summary>
