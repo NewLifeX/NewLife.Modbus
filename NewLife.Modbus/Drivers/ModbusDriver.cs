@@ -303,7 +303,6 @@ public abstract class ModbusDriver : DriverBase
         if (value == null) return null;
         if (!ModbusAddress.TryParse(point.Address, out var maddr)) return null;
 
-        using var span = Tracer?.NewSpan("Write", new { point, value });
         var n = node as ModbusNode;
         UInt16[] vs;
         if (value is Byte[] buf)

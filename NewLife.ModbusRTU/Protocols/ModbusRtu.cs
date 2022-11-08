@@ -67,7 +67,7 @@ public class ModbusRtu : Modbus
             p.Open();
             _port = p;
 
-            WriteLog("ModbusRtu.Open {0} Baudrate={1}", PortName, Baudrate);
+            WriteLog("ModbusRtu.Open {0} Baudrate={1} DataBits={2} Parity={3} StopBits={4}", PortName, Baudrate, p.DataBits, p.Parity, p.StopBits);
         }
     }
 
