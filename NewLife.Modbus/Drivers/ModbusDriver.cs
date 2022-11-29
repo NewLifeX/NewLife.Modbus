@@ -304,6 +304,9 @@ public abstract class ModbusDriver : DriverBase
         if (!ModbusAddress.TryParse(point.Address, out var maddr)) return null;
 
         var n = node as ModbusNode;
+        var code = maddr.GetWriteCode();
+        if (code == 0) code = n.WriteCode;
+
         UInt16[] vs;
         if (value is Byte[] buf)
         {
@@ -315,17 +318,54 @@ public abstract class ModbusDriver : DriverBase
         }
         else
         {
-            vs = ConvertToRegister(value, point, n.Device?.Specification);
+            // 根据写入操作码决定转换为线圈还是寄存器
+            if (code == FunctionCodes.WriteCoil || code == FunctionCodes.WriteCoils)
+                vs = ConvertToCoil(value, point, n.Device?.Specification);
+            else
+                vs = ConvertToRegister(value, point, n.Device?.Specification);
 
-            if (vs == null) throw new NotSupportedException($"点位[{point.Name}]不支持数据[{value}]");
+            if (vs == null) throw new NotSupportedException($"点位[{point.Name}][Type={point.Type}]不支持数据[{value}]");
         }
 
         // 加锁，避免冲突
         lock (Modbus)
         {
-            var code = maddr.GetWriteCode();
-            if (code == 0) code = n.WriteCode;
             return Modbus.Write(code, n.Host, maddr.Address, vs);
+        }
+    }
+
+    /// <summary>原始数据转为线圈</summary>
+    /// <param name="data"></param>
+    /// <param name="point"></param>
+    /// <param name="spec"></param>
+    /// <returns></returns>
+    protected virtual UInt16[] ConvertToCoil(Object data, IPoint point, ThingSpec spec)
+    {
+        var type = TypeHelper.GetNetType(point);
+        if (type == null)
+        {
+            // 找到物属性定义
+            var pi = spec?.Properties?.FirstOrDefault(e => e.Id.EqualIgnoreCase(point.Name));
+            type = TypeHelper.GetNetType(pi?.DataType?.Type);
+        }
+        if (type == null) return null;
+
+        switch (type.GetTypeCode())
+        {
+            case TypeCode.Boolean:
+            case TypeCode.Byte:
+            case TypeCode.SByte:
+                return data.ToBoolean() ? new[] { (UInt16)0xFF00 } : new[] { (UInt16)0x00 };
+            case TypeCode.Int16:
+            case TypeCode.UInt16:
+            case TypeCode.Int32:
+            case TypeCode.UInt32:
+                return data.ToInt() > 0 ? new[] { (UInt16)0xFF00 } : new[] { (UInt16)0x00 };
+            case TypeCode.Int64:
+            case TypeCode.UInt64:
+                return data.ToLong() > 0 ? new[] { (UInt16)0xFF00 } : new[] { (UInt16)0x00 };
+            default:
+                return data.ToBoolean() ? new[] { (UInt16)0xFF00 } : new[] { (UInt16)0x00 };
         }
     }
 
@@ -334,30 +374,23 @@ public abstract class ModbusDriver : DriverBase
     /// <param name="point"></param>
     /// <param name="spec"></param>
     /// <returns></returns>
-    private UInt16[] ConvertToRegister(Object data, IPoint point, ThingSpec spec)
+    protected virtual UInt16[] ConvertToRegister(Object data, IPoint point, ThingSpec spec)
     {
-        // 找到物属性定义
-        var pi = spec?.Properties?.FirstOrDefault(e => e.Id.EqualIgnoreCase(point.Name));
-        var type = pi?.DataType?.Type;
-        if (type.IsNullOrEmpty()) type = point.Type;
-        //if (type.IsNullOrEmpty()) return null;
+        var type = TypeHelper.GetNetType(point);
+        if (type == null)
+        {
+            // 找到物属性定义
+            var pi = spec?.Properties?.FirstOrDefault(e => e.Id.EqualIgnoreCase(point.Name));
+            type = TypeHelper.GetNetType(pi?.DataType?.Type);
+        }
+        if (type == null) return null;
 
-        var type2 = TypeHelper.GetNetType(point);
-        //var value = data.ChangeType(type2);
-        switch (type2.GetTypeCode())
+        switch (type.GetTypeCode())
         {
             case TypeCode.Boolean:
+            case TypeCode.Byte:
+            case TypeCode.SByte:
                 return data.ToBoolean() ? new[] { (UInt16)0xFF00 } : new[] { (UInt16)0x00 };
-            //case TypeCode.Byte:
-            //    break;
-            //case TypeCode.Char:
-            //    break;
-            //case TypeCode.DateTime:
-            //    break;
-            //case TypeCode.DBNull:
-            //    break;
-            //case TypeCode.Empty:
-            //    break;
             case TypeCode.Int16:
             case TypeCode.UInt16:
                 return new[] { (UInt16)data.ToInt() };
@@ -373,10 +406,6 @@ public abstract class ModbusDriver : DriverBase
                     var n = data.ToLong();
                     return new[] { (UInt16)(n >> 48), (UInt16)(n >> 32), (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
                 }
-            //case TypeCode.Object:
-            //    break;
-            //case TypeCode.SByte:
-            //    break;
             case TypeCode.Single:
                 {
                     var d = (Single)data.ToDouble();
@@ -393,7 +422,7 @@ public abstract class ModbusDriver : DriverBase
                 }
             case TypeCode.Decimal:
                 {
-                    var d = (Decimal)data.ToDecimal();
+                    var d = data.ToDecimal();
                     var n = (UInt64)d;
                     return new[] { (UInt16)(n >> 48), (UInt16)(n >> 32), (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
                 }
@@ -402,67 +431,6 @@ public abstract class ModbusDriver : DriverBase
             default:
                 return null;
         }
-
-        //switch (type.ToLower())
-        //{
-        //    case "short":
-        //    case "int16":
-        //    case "ushort":
-        //    case "uint16":
-        //        {
-        //            var n = data.ToInt();
-        //            return new[] { (UInt16)n };
-        //        }
-        //    case "int":
-        //    case "int32":
-        //    case "uint":
-        //    case "uint32":
-        //        {
-        //            var n = data.ToInt();
-        //            return new[] { (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
-        //        }
-        //    case "long":
-        //    case "int64":
-        //    case "ulong":
-        //    case "uint64":
-        //        {
-        //            var n = data.ToLong();
-        //            return new[] { (UInt16)(n >> 48), (UInt16)(n >> 32), (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
-        //        }
-        //    case "float":
-        //    case "single":
-        //        {
-        //            var d = (Single)data.ToDouble();
-        //            //var n = BitConverter.SingleToInt32Bits(d);
-        //            var n = (UInt32)d;
-        //            return new[] { (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
-        //        }
-        //    case "double":
-        //    case "decimal":
-        //        {
-        //            var d = data.ToDouble();
-        //            //var n = BitConverter.DoubleToInt64Bits(d);
-        //            var n = (UInt64)d;
-        //            return new[] { (UInt16)(n >> 48), (UInt16)(n >> 32), (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) };
-        //        }
-        //    case "bool":
-        //    case "boolean":
-        //        {
-        //            return data.ToBoolean() ? new[] { (UInt16)0xFF00 } : new[] { (UInt16)0x00 };
-        //        }
-        //    default:
-        //        return null;
-        //}
-        //return type.ToLower() switch
-        //{
-        //    "short" or "int16" or "ushort" or "uint16" => new[] { (UInt16)n },
-        //    "int" or "int32" or "uint" or "uint32" => new[] { (UInt16)(n >> 16), (UInt16)(n & 0xFFFF) },
-        //    "long" or "int64" or "uint64" => { },
-        //    "float" or "single" => BitConverter.SingleToInt32Bits((Single)data.ToDouble()).GetBytes(false),
-        //    "double" or "decimal" => BitConverter.DoubleToInt64Bits(data.ToDouble()).GetBytes(false),
-        //    "bool" or "boolean" => data.ToBoolean() ? new[] { (UInt16)0xFF00 } : new[] { (UInt16)0x00 },
-        //    _ => null,
-        //};
     }
 
     /// <summary>
