@@ -95,6 +95,6 @@ public class ModbusAsciiMessage : ModbusMessage
     #endregion
 
     #region 辅助
-    public static Byte[] Decode(String value) => null;
+    //public static Byte[] Decode(String value) => null;
     #endregion
 }

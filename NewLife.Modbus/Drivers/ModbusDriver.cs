@@ -433,12 +433,12 @@ public abstract class ModbusDriver : DriverBase
         }
     }
 
-    /// <summary>
-    /// 控制设备，特殊功能使用
-    /// </summary>
-    /// <param name="node"></param>
-    /// <param name="parameters"></param>
-    /// <exception cref="NotImplementedException"></exception>
-    public override void Control(INode node, IDictionary<String, Object> parameters) => throw new NotImplementedException();
+    ///// <summary>
+    ///// 控制设备，特殊功能使用
+    ///// </summary>
+    ///// <param name="node"></param>
+    ///// <param name="parameters"></param>
+    ///// <exception cref="NotImplementedException"></exception>
+    //public override void Control(INode node, IDictionary<String, Object> parameters) => throw new NotImplementedException();
     #endregion
 }
