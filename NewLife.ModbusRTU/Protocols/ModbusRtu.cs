@@ -81,61 +81,57 @@ public class ModbusRtu : Modbus
         // 清空缓冲区
         _port.DiscardInBuffer();
 
-        {
-            Log?.Debug("=> {0}", message);
+        Log?.Debug("=> {0}", message);
 
-            var cmd = message.ToPacket();
-            var buf = cmd.ToArray();
+        var cmd = message.ToPacket();
+        var buf = cmd.ToArray();
 
-            var crc = ModbusHelper.Crc(buf, 0, buf.Length);
-            cmd.Append(crc.GetBytes(true));
-            buf = cmd.ToArray();
+        var crc = ModbusHelper.Crc(buf, 0, buf.Length);
+        cmd.Append(crc.GetBytes(true));
+        buf = cmd.ToArray();
 
-            using var span = Tracer?.NewSpan("modbus:SendCommand", buf.ToHex("-"));
+        using var span = Tracer?.NewSpan("modbus:SendCommand", buf.ToHex("-"));
 
-            Log?.Debug("{0}=> {1}", PortName, buf.ToHex("-"));
+        Log?.Debug("{0}=> {1}", PortName, buf.ToHex("-"));
 
-            _port.Write(buf, 0, buf.Length);
+        _port.Write(buf, 0, buf.Length);
 
-            //Thread.Sleep(ByteTimeout);
-        }
+        //Thread.Sleep(ByteTimeout);
 
         // 串口速度较慢，等待收完数据
         WaitMore(_port, 1 + 1 + 2);
 
+        //using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
+        buf = new Byte[BufferSize];
+        try
         {
-            using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
-            var buf = new Byte[BufferSize];
-            try
-            {
-                var count = _port.Read(buf, 0, buf.Length);
-                var pk = new Packet(buf, 0, count);
-                Log?.Debug("{0}<= {1}", PortName, pk.ToHex(32, "-"));
+            var count = _port.Read(buf, 0, buf.Length);
+            var pk = new Packet(buf, 0, count);
+            Log?.Debug("{0}<= {1}", PortName, pk.ToHex(32, "-"));
 
-                if (span != null) span.Tag = pk.ToHex(64, "-");
+            if (span != null) span.Tag += Environment.NewLine + pk.ToHex(64, "-");
 
-                var len = pk.Total - 2;
-                if (len < 2) return null;
+            var len = pk.Total - 2;
+            if (len < 2) return null;
 
-                // 校验Crc
-                var crc = ModbusHelper.Crc(buf, 0, len);
-                var crc2 = buf.ToUInt16(len);
-                if (crc != crc2) WriteLog("Crc Error {0:X4}!={1:X4} !", crc, crc2);
+            // 校验Crc
+            crc = ModbusHelper.Crc(buf, 0, len);
+            var crc2 = buf.ToUInt16(len);
+            if (crc != crc2) WriteLog("Crc Error {0:X4}!={1:X4} !", crc, crc2);
 
-                var rs = ModbusRtuMessage.Read(pk, true);
-                if (rs == null) return null;
+            var rs = ModbusRtuMessage.Read(pk, true);
+            if (rs == null) return null;
 
-                Log?.Debug("<= {0}", rs);
+            Log?.Debug("<= {0}", rs);
 
-                // 检查功能码
-                return rs.ErrorCode > 0 ? throw new ModbusException(rs.ErrorCode, rs.ErrorCode + "") : (ModbusMessage)rs;
-            }
-            catch (Exception ex)
-            {
-                span?.SetError(ex, null);
-                if (ex is TimeoutException) return null;
-                throw;
-            }
+            // 检查功能码
+            return rs.ErrorCode > 0 ? throw new ModbusException(rs.ErrorCode, rs.ErrorCode + "") : (ModbusMessage)rs;
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            if (ex is TimeoutException) return null;
+            throw;
         }
     }
 

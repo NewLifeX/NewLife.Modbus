@@ -116,51 +116,47 @@ public abstract class ModbusIp : Modbus
 
         Log?.Debug("=> {0}", message);
 
+        var cmd = message.ToPacket();
+        using var span = Tracer?.NewSpan("modbus:SendCommand", cmd.ToHex(64, "-"));
+        try
         {
-            var cmd = message.ToPacket();
-            using var span = Tracer?.NewSpan("modbus:SendCommand", cmd.ToHex(64, "-"));
-            try
-            {
-                _client.Send(cmd);
-            }
-            catch (Exception ex)
-            {
-                span?.SetError(ex, null);
-                throw;
-            }
+            _client.Send(cmd);
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            throw;
         }
 
+        //using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
+        try
         {
-            using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
-            try
+            while (true)
             {
-                while (true)
-                {
-                    // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
-                    var pk = ReceiveCommand();
+                // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
+                var pk = ReceiveCommand();
 
-                    if (span != null) span.Tag = pk.ToHex(64, "-");
+                if (span != null) span.Tag += Environment.NewLine + pk.ToHex(64, "-");
 
-                    var rs = ReadMessage(message, pk, out var match);
-                    if (rs == null) return null;
+                var rs = ReadMessage(message, pk, out var match);
+                if (rs == null) return null;
 
-                    Log?.Debug("<= {0}", rs);
+                Log?.Debug("<= {0}", rs);
 
-                    // 检查是否匹配
-                    if (!match) continue;
+                // 检查是否匹配
+                if (!match) continue;
 
-                    // 检查功能码
-                    if (rs.ErrorCode > 0) throw new ModbusException(rs.ErrorCode, rs.ErrorCode.GetDescription());
+                // 检查功能码
+                if (rs.ErrorCode > 0) throw new ModbusException(rs.ErrorCode, rs.ErrorCode.GetDescription());
 
-                    return rs;
-                }
+                return rs;
             }
-            catch (Exception ex)
-            {
-                span?.SetError(ex, null);
-                if (ex is TimeoutException) return null;
-                throw;
-            }
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            if (ex is TimeoutException) return null;
+            throw;
         }
     }
     #endregion

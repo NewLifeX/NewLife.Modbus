@@ -75,27 +75,25 @@ public class ModbusRtuSimple
         cmd[6] = (Byte)(crc & 0xFF);
         cmd[7] = (Byte)(crc >> 8);
 
-        {
-            using var span = Tracer?.NewSpan("modbus:SendCommand", cmd.ToHex());
+        using var span = Tracer?.NewSpan("modbus:SendCommand", cmd.ToHex());
 
-            WriteLog("{0}=> {1}", PortName, cmd.ToHex("-"));
-            _port.Write(cmd, 0, cmd.Length);
-            Thread.Sleep(10);
-        }
+        WriteLog("{0}=> {1}", PortName, cmd.ToHex("-"));
+        _port.Write(cmd, 0, cmd.Length);
+        Thread.Sleep(10);
 
         // 串口速度较慢，等待收完数据
         WaitMore(_port);
 
         try
         {
-            using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
+            //using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
 
             var rs = new Byte[32];
             var c = _port.Read(rs, 0, rs.Length);
             rs = rs.ReadBytes(0, c);
             WriteLog("{0}<= {1}", PortName, rs.ToHex("-"));
 
-            if (span != null) span.Tag = rs.ToHex("-");
+            if (span != null) span.Tag += Environment.NewLine + rs.ToHex("-");
 
             if (rs.Length < 2 + 2) return null;
 
@@ -106,7 +104,12 @@ public class ModbusRtuSimple
 
             return rs.ReadBytes(2, rs.Length - 2 - 2);
         }
-        catch (TimeoutException) { return null; }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            if (ex is TimeoutException) return null;
+            throw;
+        }
     }
 
     void WaitMore(SerialPort sp)
