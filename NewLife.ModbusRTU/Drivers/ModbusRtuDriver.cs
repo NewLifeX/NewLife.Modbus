@@ -50,6 +50,9 @@ public class ModbusRtuDriver : ModbusDriver, IDriver
             PortName = p.PortName,
             Baudrate = p.Baudrate,
 
+            Timeout = p.Timeout,
+            ByteTimeout = p.ByteTimeout,
+
             Tracer = Tracer,
             Log = Log,
         };

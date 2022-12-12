@@ -1,13 +1,8 @@
-﻿using System.IO.Ports;
+﻿using System.Diagnostics;
+using System.IO.Ports;
 using NewLife.Data;
-using NewLife.IoT.Protocols;
 using NewLife.IoT;
-using System.Diagnostics;
-using NewLife.Log;
-
-#if NETSTANDARD2_1_OR_GREATER
-using System.Buffers;
-#endif
+using NewLife.IoT.Protocols;
 
 namespace NewLife.Serial.Protocols;
 
@@ -21,8 +16,8 @@ public class ModbusAscii : Modbus
     /// <summary>波特率</summary>
     public Int32 Baudrate { get; set; } = 9600;
 
-    ///// <summary>字节超时。数据包间隔，默认50ms</summary>
-    //public Int32 ByteTimeout { get; set; } = 50;
+    /// <summary>字节超时。数据包间隔，默认10ms</summary>
+    public Int32 ByteTimeout { get; set; } = 10;
 
     private SerialPort _port;
     #endregion
@@ -96,10 +91,10 @@ public class ModbusAscii : Modbus
 
         _port.Write(buf, 0, buf.Length);
 
-        //Thread.Sleep(ByteTimeout);
+        if (ByteTimeout > 0) Thread.Sleep(ByteTimeout);
 
         // 串口速度较慢，等待收完数据
-        WaitMore(_port, 1 + 1 + 2);
+        WaitMore(_port, 1 + 2 + 2 + 1 + 2);
 
         //using var span = Tracer?.NewSpan("modbus:ReceiveCommand");
         buf = new Byte[BufferSize];
@@ -140,18 +135,18 @@ public class ModbusAscii : Modbus
         var count = sp.BytesToRead;
         if (count >= minLength) return;
 
-        var ms = Timeout;
+        var ms = ByteTimeout > 0 ? ByteTimeout : 10;
         var sw = Stopwatch.StartNew();
-        while (sp.IsOpen && sw.ElapsedMilliseconds < ms)
+        while (sp.IsOpen && sw.ElapsedMilliseconds < Timeout)
         {
             //Thread.SpinWait(1);
-            Thread.Sleep(10);
+            Thread.Sleep(ms);
             if (count != sp.BytesToRead)
             {
                 count = sp.BytesToRead;
                 if (count >= minLength) break;
 
-                sw.Restart();
+                //sw.Restart();
             }
         }
     }
