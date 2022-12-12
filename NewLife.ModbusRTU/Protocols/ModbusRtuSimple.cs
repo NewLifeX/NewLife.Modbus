@@ -95,7 +95,7 @@ public class ModbusRtuSimple
             rs = rs.ReadBytes(0, c);
             WriteLog("{0}<= {1}", PortName, rs.ToHex("-"));
 
-            if (span != null) span.Tag = rs.ToHex();
+            if (span != null) span.Tag = rs.ToHex("-");
 
             if (rs.Length < 2 + 2) return null;
 

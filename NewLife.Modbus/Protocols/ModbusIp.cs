@@ -139,7 +139,7 @@ public abstract class ModbusIp : Modbus
                     // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
                     var pk = ReceiveCommand();
 
-                    if (span != null) span.Tag = pk.ToHex();
+                    if (span != null) span.Tag = pk.ToHex(64, "-");
 
                     var rs = ReadMessage(message, pk, out var match);
                     if (rs == null) return null;

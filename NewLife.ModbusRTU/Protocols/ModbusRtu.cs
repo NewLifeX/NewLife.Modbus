@@ -112,7 +112,7 @@ public class ModbusRtu : Modbus
                 var pk = new Packet(buf, 0, count);
                 Log?.Debug("{0}<= {1}", PortName, pk.ToHex(32, "-"));
 
-                if (span != null) span.Tag = pk.ToHex();
+                if (span != null) span.Tag = pk.ToHex(64, "-");
 
                 var len = pk.Total - 2;
                 if (len < 2) return null;
