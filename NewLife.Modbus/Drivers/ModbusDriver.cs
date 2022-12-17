@@ -182,6 +182,7 @@ public abstract class ModbusDriver : DriverBase
         //if (!merge) return list;
         //if (list.Any(e => e.ReadCode != FunctionCodes.ReadRegister && e.ReadCode != FunctionCodes.ReadInput)) return list;
 
+        var step = p.BatchStep > 1 ? p.BatchStep : 1;
         var k = 1;
         var rs = new List<Segment>();
         var prv = list[0];
@@ -191,7 +192,7 @@ public abstract class ModbusDriver : DriverBase
             var cur = list[i];
 
             // 前一段末尾碰到了当前段开始，可以合并
-            var flag = prv.Address + prv.Count >= cur.Address;
+            var flag = prv.Address + prv.Count + step > cur.Address;
             // 如果是读取线圈，间隔小于8都可以合并
             if (!flag && cur.ReadCode == FunctionCodes.ReadCoil)
             {
