@@ -26,7 +26,7 @@ public class ModbusParameter : IDriverParameter
     [Description("批大小。凑批请求时，每批最多点位个数")]
     public Int32 BatchSize { get; set; }
 
-    /// <summary>延迟。相邻请求之间的延迟时间，单位毫秒</summary>
-    [Description("延迟。相邻请求之间的延迟时间，单位毫秒")]
-    public Int32 Delay { get; set; }
+    /// <summary>批延迟。相邻请求之间的延迟时间，单位毫秒</summary>
+    [Description("批延迟。相邻请求之间的延迟时间，单位毫秒")]
+    public Int32 BatchDelay { get; set; }
 }

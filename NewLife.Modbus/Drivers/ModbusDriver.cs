@@ -152,7 +152,7 @@ public abstract class ModbusDriver : DriverBase
                 }
 
                 // 读取时延迟一点时间
-                if (i < list.Count - 1 && p.Delay > 0) Thread.Sleep(p.Delay);
+                if (i < list.Count - 1 && p.BatchDelay > 0) Thread.Sleep(p.BatchDelay);
             }
         }
 
