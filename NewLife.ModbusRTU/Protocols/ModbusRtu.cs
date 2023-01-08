@@ -21,6 +21,15 @@ public class ModbusRtu : Modbus
     /// <summary>波特率</summary>
     public Int32 Baudrate { get; set; } = 9600;
 
+    /// <summary>数据位长度。默认8</summary>
+    public Int32 DataBits { get; set; } = 8;
+
+    /// <summary>奇偶校验位。默认None无校验</summary>
+    public Parity Parity { get; set; } = Parity.None;
+
+    /// <summary>停止位。默认One</summary>
+    public StopBits StopBits { get; set; } = StopBits.One;
+
     /// <summary>字节超时。数据包间隔，默认10ms</summary>
     public Int32 ByteTimeout { get; set; } = 10;
 
@@ -61,6 +70,10 @@ public class ModbusRtu : Modbus
         {
             var p = new SerialPort(PortName, Baudrate)
             {
+                DataBits = DataBits,
+                Parity = Parity,
+                StopBits = StopBits,
+
                 ReadTimeout = Timeout,
                 WriteTimeout = Timeout
             };
