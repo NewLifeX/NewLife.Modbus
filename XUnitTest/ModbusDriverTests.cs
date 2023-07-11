@@ -124,7 +124,7 @@ public class ModbusDriverTests
         var mockModbus = new Mock<Modbus> { CallBase = true };
 
         var mockDriver = new Mock<ModbusDriver> { CallBase = true };
-        mockDriver.Setup(e => e.CreateModbus(It.IsAny<IDevice>(), It.IsAny<ModbusNode>(), It.IsAny<IDictionary<String, Object>>()))
+        mockDriver.Setup(e => e.CreateModbus(It.IsAny<IDevice>(), It.IsAny<ModbusNode>(), It.IsAny<ModbusParameter>()))
             .Returns(mockModbus.Object);
 
         var driver = mockDriver.Object;
@@ -162,7 +162,7 @@ public class ModbusDriverTests
         var mockModbus = new Mock<Modbus> { CallBase = true };
 
         var mockDriver = new Mock<ModbusDriver> { CallBase = true };
-        mockDriver.Setup(e => e.CreateModbus(It.IsAny<IDevice>(), It.IsAny<ModbusNode>(), It.IsAny<IDictionary<String, Object>>()))
+        mockDriver.Setup(e => e.CreateModbus(It.IsAny<IDevice>(), It.IsAny<ModbusNode>(), It.IsAny<ModbusParameter>()))
             .Returns(mockModbus.Object);
 
         var driver = mockDriver.Object;
@@ -345,7 +345,7 @@ public class ModbusDriverTests
             });
 
         var mockDriver = new Mock<ModbusDriver> { CallBase = true };
-        mockDriver.Setup(e => e.CreateModbus(It.IsAny<IDevice>(), It.IsAny<ModbusNode>(), It.IsAny<IDictionary<String, Object>>()))
+        mockDriver.Setup(e => e.CreateModbus(It.IsAny<IDevice>(), It.IsAny<ModbusNode>(), It.IsAny<ModbusParameter>()))
             .Returns(mockModbus.Object);
 
         var driver = mockDriver.Object;

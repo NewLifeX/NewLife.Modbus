@@ -44,19 +44,20 @@ public abstract class ModbusDriver : DriverBase
     /// </summary>
     /// <param name="device">逻辑设备</param>
     /// <param name="node">设备节点</param>
-    /// <param name="parameters">参数</param>
+    /// <param name="parameter">参数</param>
     /// <returns></returns>
-    internal protected abstract Modbus CreateModbus(IDevice device, ModbusNode node, IDictionary<String, Object> parameters);
+    internal protected abstract Modbus CreateModbus(IDevice device, ModbusNode node, ModbusParameter parameter);
 
     /// <summary>
     /// 打开通道。一个ModbusTcp设备可能分为多个通道读取，需要共用Tcp连接，以不同节点区分
     /// </summary>
     /// <param name="device">通道</param>
-    /// <param name="parameters">参数</param>
+    /// <param name="parameter">参数</param>
     /// <returns></returns>
-    public override INode Open(IDevice device, IDictionary<String, Object> parameters)
+    public override INode Open(IDevice device, IDriverParameter parameter)
     {
-        var p = JsonHelper.Convert<ModbusParameter>(parameters);
+        var p = parameter as ModbusParameter;
+        if (p == null) return null;
 
         var node = new ModbusNode
         {
@@ -76,7 +77,7 @@ public abstract class ModbusDriver : DriverBase
             {
                 if (Modbus == null)
                 {
-                    var modbus = CreateModbus(device, node, parameters);
+                    var modbus = CreateModbus(device, node, p);
                     if (p.Timeout > 0) modbus.Timeout = p.Timeout;
 
                     // 外部已指定通道时，打开连接

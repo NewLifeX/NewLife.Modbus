@@ -64,7 +64,7 @@ namespace XUnitTest
         {
             var driver = new ModbusTcpDriver();
 
-            var p = new ModbusIpParameter
+            var p = new ModbusTcpParameter
             {
                 Host = 3,
                 ReadCode = FunctionCodes.ReadRegister,

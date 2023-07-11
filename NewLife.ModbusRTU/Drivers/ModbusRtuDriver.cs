@@ -34,12 +34,12 @@ public class ModbusRtuDriver : ModbusDriver, IDriver
     /// </summary>
     /// <param name="device">逻辑设备</param>
     /// <param name="node">设备节点</param>
-    /// <param name="parameters">参数</param>
+    /// <param name="parameter">参数</param>
     /// <returns></returns>
-    protected override Modbus CreateModbus(IDevice device, ModbusNode node, IDictionary<String, Object> parameters)
+    protected override Modbus CreateModbus(IDevice device, ModbusNode node, ModbusParameter parameter)
     {
-        var p = JsonHelper.Convert<ModbusRtuParameter>(parameters);
-        if (p.PortName.IsNullOrEmpty()) throw new ArgumentException("参数中未指定端口PortName");
+        var p = parameter as ModbusRtuParameter;
+        if (p == null || p.PortName.IsNullOrEmpty()) throw new ArgumentException("参数中未指定端口PortName");
 
         if (p.Baudrate <= 0) p.Baudrate = 9600;
 
