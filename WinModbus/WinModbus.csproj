@@ -25,4 +25,13 @@
     <ProjectReference Include="..\NewLife.ModbusRTU\NewLife.ModbusRTU.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="FrmI6O6N.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="InputPort.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+  </ItemGroup>
+
 </Project>

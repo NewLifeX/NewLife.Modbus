@@ -1,8 +1,6 @@
-﻿using System.IO.Ports;
-using NewLife;
+﻿using NewLife;
 using NewLife.IoT.Protocols;
 using NewLife.Log;
-using NewLife.Serial.Protocols;
 
 namespace WinModbus;
 

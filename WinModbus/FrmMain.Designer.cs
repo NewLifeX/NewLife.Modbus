@@ -41,6 +41,7 @@
             txtAddress = new TextBox();
             numPort = new NumericUpDown();
             groupBox3 = new GroupBox();
+            btnI6O6N = new Button();
             btnSwitch = new Button();
             label4 = new Label();
             richTextBox1 = new RichTextBox();
@@ -171,27 +172,38 @@
             numPort.Size = new Size(99, 27);
             numPort.TabIndex = 10;
             numPort.TextAlign = HorizontalAlignment.Right;
-            numPort.Value = new decimal(new int[] { 512, 0, 0, 0 });
+            numPort.Value = new decimal(new int[] { 502, 0, 0, 0 });
             // 
             // groupBox3
             // 
+            groupBox3.Controls.Add(btnI6O6N);
             groupBox3.Controls.Add(btnSwitch);
             groupBox3.Controls.Add(numHost);
             groupBox3.Controls.Add(label4);
             groupBox3.Location = new Point(12, 156);
             groupBox3.Name = "groupBox3";
-            groupBox3.Size = new Size(460, 66);
+            groupBox3.Size = new Size(558, 66);
             groupBox3.TabIndex = 15;
             groupBox3.TabStop = false;
             groupBox3.Text = "通用参数";
             // 
+            // btnI6O6N
+            // 
+            btnI6O6N.Location = new Point(261, 21);
+            btnI6O6N.Name = "btnI6O6N";
+            btnI6O6N.Size = new Size(82, 42);
+            btnI6O6N.TabIndex = 15;
+            btnI6O6N.Text = "I6O6N";
+            btnI6O6N.UseVisualStyleBackColor = true;
+            btnI6O6N.Click += btnI6O6N_Click;
+            // 
             // btnSwitch
             // 
-            btnSwitch.Location = new Point(274, 20);
+            btnSwitch.Location = new Point(163, 21);
             btnSwitch.Name = "btnSwitch";
             btnSwitch.Size = new Size(82, 42);
             btnSwitch.TabIndex = 14;
-            btnSwitch.Text = "开关控制";
+            btnSwitch.Text = "4路开关";
             btnSwitch.UseVisualStyleBackColor = true;
             btnSwitch.Click += btnSwitch_Click;
             // 
@@ -270,5 +282,6 @@
         private RichTextBox richTextBox1;
         private Button btnSwitch;
         private Button btnConnect2;
+        private Button btnI6O6N;
     }
 }

@@ -95,4 +95,15 @@ public partial class FrmMain : Form
         };
         frm.Show();
     }
+
+    private void btnI6O6N_Click(Object sender, EventArgs e)
+    {
+        var host = (Byte)numHost.Value;
+        var frm = new FrmI6O6N
+        {
+            Modbus = _modbus,
+            Host = host,
+        };
+        frm.Show();
+    }
 }
