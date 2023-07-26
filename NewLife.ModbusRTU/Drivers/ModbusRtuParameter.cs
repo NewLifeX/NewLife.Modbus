@@ -5,7 +5,7 @@ using NewLife.IoT.Drivers;
 namespace NewLife.Serial.Drivers;
 
 /// <summary>ModbusRtu参数</summary>
-public class ModbusRtuParameter : ModbusParameter
+public class ModbusRtuParameter : ModbusParameter, IDriverParameterKey
 {
     /// <summary>串口</summary>
     [Description("串口")]
@@ -30,4 +30,8 @@ public class ModbusRtuParameter : ModbusParameter
     /// <summary>字节超时。数据包间隔，默认10ms</summary>
     [Description("字节超时。数据包间隔，默认10ms")]
     public Int32 ByteTimeout { get; set; } = 10;
+
+    /// <summary>获取唯一标识</summary>
+    /// <returns></returns>
+    public String GetKey() => PortName;
 }

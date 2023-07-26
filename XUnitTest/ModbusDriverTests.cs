@@ -29,11 +29,10 @@ public class ModbusDriverTests
         //    Timeout = Rand.Next(),
         //    BatchSize = Rand.Next(),
         //};
-        var p = new ModbusIpParameter();
+        var p = driver.CreateParameter(null) as ModbusIpParameter;
         Rand.Fill(p);
-        var dic = p.ToDictionary();
 
-        var node = driver.Open(null, dic);
+        var node = driver.Open(null, p);
 
         var node2 = node as ModbusNode;
         Assert.NotNull(node2);
@@ -57,14 +56,13 @@ public class ModbusDriverTests
     {
         var driver = new ModbusTcpDriver();
 
-        var p = new ModbusIpParameter();
+        var p = driver.CreateParameter(null);
         Rand.Fill(p);
-        var dic = p.ToDictionary();
 
-        var node1 = driver.Open(null, dic);
+        var node1 = driver.Open(null, p);
         var m1 = driver.Modbus;
 
-        var node2 = driver.Open(null, dic);
+        var node2 = driver.Open(null, p);
         var m2 = driver.Modbus;
         Assert.NotNull(driver.Modbus);
         Assert.Equal(m1, m2);
@@ -82,10 +80,9 @@ public class ModbusDriverTests
     {
         var driver = new ModbusTcpDriver();
 
-        var p = driver.GetDefaultParameter() as ModbusParameter;
-        var dic = p.ToDictionary();
+        var p = driver.CreateParameter(null);
 
-        var node = driver.Open(null, dic);
+        var node = driver.Open(null, p);
 
         // 模拟Modbus
         var mb = new Mock<Modbus>();
@@ -196,10 +193,9 @@ public class ModbusDriverTests
     {
         var driver = new ModbusTcpDriver();
 
-        var p = driver.GetDefaultParameter() as ModbusParameter;
-        var dic = p.ToDictionary();
+        var p = driver.CreateParameter(null) as ModbusParameter;
 
-        var node = driver.Open(null, dic);
+        var node = driver.Open(null, p);
         p = node.Parameter as ModbusParameter;
 
         // 模拟Modbus
@@ -243,10 +239,9 @@ public class ModbusDriverTests
     {
         var driver = new ModbusTcpDriver();
 
-        var p = driver.GetDefaultParameter() as ModbusParameter;
-        var dic = p.ToDictionary();
+        var p = driver.CreateParameter(null) as ModbusParameter;
 
-        var node = driver.Open(null, dic);
+        var node = driver.Open(null, p);
         p = node.Parameter as ModbusParameter;
 
         // 模拟Modbus
@@ -292,7 +287,7 @@ public class ModbusDriverTests
     {
         var driver = new ModbusTcpDriver();
 
-        var p = driver.GetDefaultParameter() as ModbusParameter;
+        var p = driver.CreateParameter(null) as ModbusParameter;
 
         var node = driver.Open(null, p);
 

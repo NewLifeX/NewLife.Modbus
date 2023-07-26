@@ -3,7 +3,6 @@ using NewLife.IoT.Protocols;
 using NewLife.IoT.ThingModels;
 using NewLife.IoT.ThingSpecification;
 using NewLife.Reflection;
-using NewLife.Serialization;
 
 namespace NewLife.IoT.Drivers;
 

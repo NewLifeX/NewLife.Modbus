@@ -25,9 +25,8 @@ namespace XUnitTest
                 WriteCode = FunctionCodes.WriteRegister,
                 PortName = "COM1",
             };
-            var dic = p.ToDictionary();
 
-            var node = driver.Open(null, dic);
+            var node = driver.Open(null, p);
 
             var node2 = node as ModbusNode;
             Assert.NotNull(node2);
