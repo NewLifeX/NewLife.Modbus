@@ -146,7 +146,7 @@ public abstract class ModbusDriver : DriverBase
                 {
                     seg.Data = Modbus.Read(seg.ReadCode, n.Host, (UInt16)seg.Address, (UInt16)seg.Count)?.ReadBytes();
 
-                    var x = seg.Data.Join(" ", e => e.ToHex());
+                    //var x = seg.Data.Join(" ", e => e.ToHex());
                 }
                 catch (Exception ex)
                 {

@@ -6,7 +6,7 @@
     <Description>Modbus基础协议，包括ModbusTcp</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2023 新生命开发团队</Copyright>
-    <VersionPrefix>1.7</VersionPrefix>
+    <VersionPrefix>1.8</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
@@ -37,15 +37,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NewLife.Core" Version="10.6.2023.1001" />
+    <PackageReference Include="NewLife.Core" Version="10.6.2023.1201" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NewLife.IoT" Version="1.9.2023.1001" />
+    <PackageReference Include="NewLife.IoT" Version="2.0.2023.1210-beta1616" />
   </ItemGroup>
 
   <ItemGroup>

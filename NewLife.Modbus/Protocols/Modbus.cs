@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using NewLife.Data;
+using NewLife.IoT.Controllers;
 using NewLife.Log;
 using NewLife.Serialization;
 
@@ -8,7 +9,7 @@ using NewLife.Serialization;
 namespace NewLife.IoT.Protocols;
 
 /// <summary>Modbus协议核心</summary>
-public abstract class Modbus : DisposeBase
+public abstract class Modbus : DisposeBase, IModbus
 {
     #region 属性
     /// <summary>名称</summary>
