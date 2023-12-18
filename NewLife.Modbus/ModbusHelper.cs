@@ -11,7 +11,7 @@ public static class ModbusHelper
     public static Byte[] GetAsciiBytes(params Byte[] numbers) => Encoding.UTF8.GetBytes(numbers.SelectMany((Byte n) => n.ToString("X2")).ToArray());
 
     #region CRC
-    private static readonly UInt16[] crc_ta = new UInt16[16] { 0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401, 0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400, };
+    private static readonly UInt16[] crc_ta = [0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401, 0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400,];
 
     /// <summary>Crc校验</summary>
     /// <param name="data">数据</param>

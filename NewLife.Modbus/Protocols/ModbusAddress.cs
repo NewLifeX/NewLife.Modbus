@@ -25,7 +25,7 @@ public class ModbusAddress
 
         // 去掉冒号后面的位域
         var addr = address;
-        var p = addr.IndexOfAny(new[] { ':', '.' });
+        var p = addr.IndexOfAny([':', '.']);
         if (p > 0) addr = addr.Substring(0, p);
 
         modbusAddress = new ModbusAddress();
