@@ -34,6 +34,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageReadmeFile>Readme.MD</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -41,7 +42,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NewLife.Core" Version="10.6.2024.101" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net461' or '$(TargetFramework)'=='netstandard2.0' or '$(TargetFramework)'=='netstandard2.1'">
     <PackageReference Include="System.IO.Ports" Version="6.0.0" />
@@ -58,6 +58,12 @@
 
   <ItemGroup>
     <Content Include="..\Doc\leaf.png" Link="leaf.png" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Readme.MD">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

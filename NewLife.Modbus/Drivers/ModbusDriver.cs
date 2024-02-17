@@ -262,7 +262,7 @@ public abstract class ModbusDriver : DriverBase
                 var count = GetCount(point);
 
                 // 找到片段 需要补充类型过滤参数避免不同类型相同地址取值错误问题
-                var seg = segments.FirstOrDefault(e => e.Address <= maddr.Address && maddr.Address + count <= e.Address + e.Count && e.ReadCode == maddr.Range.ReadCode);
+                var seg = segments.FirstOrDefault(e => e.Address <= maddr.Address && maddr.Address + count <= e.Address + e.Count && (maddr.Range == null || e.ReadCode == maddr.Range.ReadCode));
                 if (seg != null && seg.Data != null)
                 {
                     var code = seg.ReadCode;
