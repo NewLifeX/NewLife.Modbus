@@ -25,17 +25,19 @@ public class ModbusRtuOverUdp : ModbusIp
     {
         // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
         var dataLength = 4; // 1+1+2
-        var count = 0;
         Packet pk = null;
-        while (count < dataLength)
+        for (var i = 0; i < 3; i++)
         {
+            // 阻塞读取
             var pk2 = _client.Receive();
+            if (pk2 == null || pk2.Total == 0) continue;
+
             if (pk == null)
                 pk = pk2;
             else
                 pk.Append(pk2);
 
-            count = pk.Total;
+            if (pk.Total >= dataLength) break;
         }
 
         return pk;
