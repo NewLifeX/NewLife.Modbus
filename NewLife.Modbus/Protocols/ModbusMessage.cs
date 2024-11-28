@@ -26,7 +26,7 @@ public class ModbusMessage : IAccessor
 
     /// <summary>负载数据</summary>
     [IgnoreDataMember]
-    public Packet Payload { get; set; }
+    public IPacket Payload { get; set; }
     #endregion
 
     #region 构造
@@ -64,7 +64,7 @@ public class ModbusMessage : IAccessor
             return true;
         }
 
-        Payload = stream.ReadBytes(-1);
+        Payload = (ArrayPacket)stream.ReadBytes(-1);
 
         return true;
     }
@@ -73,12 +73,22 @@ public class ModbusMessage : IAccessor
     /// <param name="data">数据包</param>
     /// <param name="reply">是否响应</param>
     /// <returns></returns>
-    public static ModbusMessage Read(Packet data, Boolean reply = false)
+    public static ModbusMessage Read(IPacket data, Boolean reply = false)
     {
         var msg = new ModbusMessage { Reply = reply };
         if (msg.Read(data.GetStream(), null)) return msg;
 
         return null;
+    }
+
+    /// <summary>解析消息</summary>
+    /// <param name="data"></param>
+    /// <param name="reply"></param>
+    /// <returns></returns>
+    public static ModbusMessage Read(Byte[] data, Boolean reply = false)
+    {
+        var msg = new ModbusMessage { Reply = reply };
+        return msg.Read(new MemoryStream(data), null) ? msg : null;
     }
 
     /// <summary>写入消息到数据流</summary>
@@ -102,22 +112,22 @@ public class ModbusMessage : IAccessor
             return true;
         }
 
-        var pk = Payload;
-        if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
-        //Payload?.CopyTo(binary.Stream);
+        //var pk = Payload;
+        //if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
+        Payload?.CopyTo(binary.Stream);
 
         return true;
     }
 
     /// <summary>消息转数据包</summary>
     /// <returns></returns>
-    public Packet ToPacket()
+    public IPacket ToPacket()
     {
         var ms = new MemoryStream();
         Write(ms, null);
 
         ms.Position = 0;
-        return new Packet(ms);
+        return new ArrayPacket(ms);
     }
 
     /// <summary>创建响应</summary>
@@ -161,16 +171,19 @@ public class ModbusMessage : IAccessor
         buf.Write(address, 0, false);
         buf.Write(count, 2, false);
 
-        Payload = buf;
+        Payload = (ArrayPacket)buf;
     }
 
     /// <summary>设置请求地址和数据，填充负载数据</summary>
     /// <param name="address"></param>
     /// <param name="data"></param>
-    public void SetRequest(UInt16 address, Packet data)
+    public void SetRequest(UInt16 address, IPacket data)
     {
-        Payload = new Packet(address.GetBytes(false));
-        Payload.Append(data);
+        //Payload = new ArrayPacket(address.GetBytes(false));
+        //Payload.Append(data);
+        var pk = new ArrayPacket(address.GetBytes(false));
+        pk.Next = data;
+        Payload = pk;
     }
     #endregion
 }

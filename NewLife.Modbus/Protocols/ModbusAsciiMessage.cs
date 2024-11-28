@@ -45,10 +45,20 @@ public class ModbusAsciiMessage : ModbusMessage
     /// <param name="data">数据包</param>
     /// <param name="reply">是否响应</param>
     /// <returns></returns>
-    public static new ModbusAsciiMessage Read(Packet data, Boolean reply = false)
+    public static new ModbusAsciiMessage Read(IPacket data, Boolean reply = false)
     {
         var msg = new ModbusAsciiMessage { Reply = reply };
         return msg.Read(data.GetStream(), null) ? msg : null;
+    }
+
+    /// <summary>解析消息</summary>
+    /// <param name="data"></param>
+    /// <param name="reply"></param>
+    /// <returns></returns>
+    public static new ModbusAsciiMessage Read(Byte[] data, Boolean reply = false)
+    {
+        var msg = new ModbusAsciiMessage { Reply = reply };
+        return msg.Read(new MemoryStream(data), null) ? msg : null;
     }
 
     /// <summary>写入消息到数据流</summary>

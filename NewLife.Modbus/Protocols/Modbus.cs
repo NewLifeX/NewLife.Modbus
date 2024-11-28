@@ -51,7 +51,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="value">数据值</param>
     /// <returns>返回响应消息的负载部分</returns>
-    public virtual Packet SendCommand(FunctionCodes code, Byte host, UInt16 address, UInt16 value)
+    public virtual IPacket SendCommand(FunctionCodes code, Byte host, UInt16 address, UInt16 value)
     {
         var msg = CreateMessage();
         msg.Host = host;
@@ -69,7 +69,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="host">主机。一般是1</param>
     /// <param name="data">数据</param>
     /// <returns>返回响应消息的负载部分</returns>
-    public virtual Packet SendCommand(FunctionCodes code, Byte host, Packet data)
+    public virtual IPacket SendCommand(FunctionCodes code, Byte host, IPacket data)
     {
         var msg = CreateMessage();
         msg.Host = host;
@@ -95,7 +95,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="count">个数。寄存器个数或线圈个数</param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
-    public virtual Packet Read(FunctionCodes code, Byte host, UInt16 address, UInt16 count)
+    public virtual IPacket Read(FunctionCodes code, Byte host, UInt16 address, UInt16 count)
     {
         switch (code)
         {
@@ -115,7 +115,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="count">线圈数量。一般要求8的倍数</param>
     /// <returns>线圈状态字节数组</returns>
-    public Packet ReadCoil(Byte host, UInt16 address, UInt16 count)
+    public IPacket ReadCoil(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadCoil", $"host={host} address={address}/0x{address:X4} count={count}");
         try
@@ -144,7 +144,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="count">输入数量。一般要求8的倍数</param>
     /// <returns>输入状态字节数组</returns>
-    public Packet ReadDiscrete(Byte host, UInt16 address, UInt16 count)
+    public IPacket ReadDiscrete(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadDiscrete", $"host={host} address={address}/0x{address:X4} count={count}");
         try
@@ -173,7 +173,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="count">寄存器数量。每个寄存器2个字节</param>
     /// <returns>寄存器值数组</returns>
-    public Packet ReadRegister(Byte host, UInt16 address, UInt16 count)
+    public IPacket ReadRegister(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadRegister", $"host={host} address={address}/0x{address:X4} count={count}");
         try
@@ -202,7 +202,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="count">输入寄存器数量。每个寄存器2个字节</param>
     /// <returns>输入寄存器值数组</returns>
-    public Packet ReadInput(Byte host, UInt16 address, UInt16 count)
+    public IPacket ReadInput(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadInput", $"host={host} address={address}/0x{address:X4} count={count}");
         try
@@ -332,7 +332,7 @@ public abstract class Modbus : DisposeBase, IModbus
 
             // 直接使用内存流缓冲区，避免拷贝
             binary.Stream.Position = 0;
-            var pk = new Packet(binary.Stream);
+            var pk = new ArrayPacket(binary.Stream);
 
             var rs = SendCommand(FunctionCodes.WriteCoils, host, pk);
             if (rs == null || rs.Total < 4) return -1;
@@ -370,7 +370,7 @@ public abstract class Modbus : DisposeBase, IModbus
 
             // 直接使用内存流缓冲区，避免拷贝
             binary.Stream.Position = 0;
-            var pk = new Packet(binary.Stream);
+            var pk = new ArrayPacket(binary.Stream);
 
             var rs = SendCommand(FunctionCodes.WriteRegisters, host, pk);
             if (rs == null || rs.Total < 4) return -1;

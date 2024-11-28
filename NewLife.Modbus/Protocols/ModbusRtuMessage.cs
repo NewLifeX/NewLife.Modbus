@@ -45,10 +45,17 @@ public class ModbusRtuMessage : ModbusMessage
     /// <param name="data">数据包</param>
     /// <param name="reply">是否响应</param>
     /// <returns></returns>
-    public static new ModbusRtuMessage Read(Packet data, Boolean reply = false)
+    public static new ModbusRtuMessage Read(IPacket data, Boolean reply = false)
     {
         var msg = new ModbusRtuMessage { Reply = reply };
         return msg.Read(data.GetStream(), null) ? msg : null;
+    }
+
+    /// <summary>解析消息</summary>
+    public static new ModbusRtuMessage Read(Byte[] data, Boolean reply = false)
+    {
+        var msg = new ModbusRtuMessage { Reply = reply };
+        return msg.Read(new MemoryStream(data), null) ? msg : null;
     }
 
     /// <summary>写入消息到数据流</summary>

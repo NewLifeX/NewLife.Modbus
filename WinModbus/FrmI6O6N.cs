@@ -1,4 +1,5 @@
 ﻿using NewLife;
+using NewLife.Data;
 using NewLife.IoT.Protocols;
 using NewLife.Log;
 using NewLife.Serialization;
@@ -26,7 +27,7 @@ public partial class FrmI6O6N : Form
     private void btnReadInfo_Click(Object sender, EventArgs e)
     {
         var pk = _modbus.ReadRegister(_host, 0x1000, 14);
-        if (pk == null || pk.Count == 0) return;
+        if (pk == null || pk.Total == 0) return;
 
         var ms = pk.GetStream();
         var reader = new Binary { Stream = ms, IsLittleEndian = false };

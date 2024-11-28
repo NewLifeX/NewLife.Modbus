@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using NewLife;
+using NewLife.Data;
 using NewLife.IoT.Protocols;
 using Xunit;
 

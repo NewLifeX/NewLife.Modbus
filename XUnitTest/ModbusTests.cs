@@ -17,9 +17,9 @@ public class ModbusTests
         //mb.Setup(e => e.Read(FunctionCodes.ReadRegister, 1, 100, 1))
         //    .Returns("01-02-00".ToHex());
         mb.Setup(e => e.SendCommand(FunctionCodes.ReadRegister, 1, It.IsAny<UInt16>(), 1))
-            .Returns("02-02-00".ToHex());
+            .Returns((ArrayPacket)"02-02-00".ToHex());
         mb.Setup(e => e.SendCommand(FunctionCodes.ReadRegister, 1, It.IsAny<UInt16>(), 2))
-            .Returns("04-01-02-03-04".ToHex());
+            .Returns((ArrayPacket)"04-01-02-03-04".ToHex());
 
         var modbus = mb.Object;
 
@@ -28,11 +28,11 @@ public class ModbusTests
         Assert.Throws<NotSupportedException>(() => modbus.Read(FunctionCodes.ReadWriteMultipleRegisters, 1, 1, 1));
 
         // 读取
-        var rs = modbus.Read(FunctionCodes.ReadRegister, 1, 100, 1) as Packet;
+        var rs = modbus.Read(FunctionCodes.ReadRegister, 1, 100, 1) as IPacket;
         Assert.NotNull(rs);
         Assert.Equal(0x0200, rs.ReadBytes().ToUInt16(0, false));
 
-        rs = modbus.Read(FunctionCodes.ReadRegister, 1, 102, 2) as Packet;
+        rs = modbus.Read(FunctionCodes.ReadRegister, 1, 102, 2) as IPacket;
         Assert.NotNull(rs);
         Assert.Equal(0x01020304u, rs.ReadBytes().ToUInt32(0, false));
     }
@@ -43,7 +43,7 @@ public class ModbusTests
         // 模拟Modbus
         var mb = new Mock<Modbus>() { CallBase = true };
         mb.Setup(e => e.SendCommand(FunctionCodes.ReadCoil, 1, 100, 2))
-            .Returns("02-12-34-56-78".ToHex());
+            .Returns((ArrayPacket)"02-12-34-56-78".ToHex());
 
         var modbus = mb.Object;
 
@@ -62,7 +62,7 @@ public class ModbusTests
         // 模拟Modbus
         var mb = new Mock<Modbus>() { CallBase = true };
         mb.Setup(e => e.SendCommand(FunctionCodes.ReadDiscrete, 1, 100, 2))
-            .Returns("02-12-34-56-78".ToHex());
+            .Returns((ArrayPacket)"02-12-34-56-78".ToHex());
 
         var modbus = mb.Object;
 
@@ -81,7 +81,7 @@ public class ModbusTests
         // 模拟Modbus
         var mb = new Mock<Modbus>() { CallBase = true };
         mb.Setup(e => e.SendCommand(FunctionCodes.ReadRegister, 1, 100, 2))
-            .Returns("04-12-34-56-78".ToHex());
+            .Returns((ArrayPacket)"04-12-34-56-78".ToHex());
 
         var modbus = mb.Object;
 
@@ -101,7 +101,7 @@ public class ModbusTests
         // 模拟Modbus
         var mb = new Mock<Modbus>() { CallBase = true };
         mb.Setup(e => e.SendCommand(FunctionCodes.ReadInput, 1, 100, 2))
-            .Returns("04-12-34-56-78".ToHex());
+            .Returns((ArrayPacket)"04-12-34-56-78".ToHex());
 
         var modbus = mb.Object;
 

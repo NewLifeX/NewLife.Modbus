@@ -81,15 +81,15 @@ public abstract class ModbusIp : Modbus
     /// <param name="data">目标数据包</param>
     /// <param name="match">是否匹配请求</param>
     /// <returns>响应消息</returns>
-    protected abstract ModbusMessage ReadMessage(ModbusMessage request, Packet data, out Boolean match);
+    protected abstract ModbusMessage ReadMessage(ModbusMessage request, IPacket data, out Boolean match);
 
     /// <summary>接收响应</summary>
     /// <returns></returns>
-    protected virtual Packet ReceiveCommand()
+    protected virtual IPacket ReceiveCommand()
     {
         // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
         var dataLength = 8; // 2+2+2+1+1
-        Packet pk = null;
+        IPacket pk = null;
         for (var i = 0; i < 8; i++)
         {
             // 阻塞读取

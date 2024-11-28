@@ -52,7 +52,7 @@ public class ModbusSession : NetSession<ModbusSlave>
         base.OnReceive(e);
     }
 
-    Packet OnReadCoil(ModbusMessage msg)
+    IPacket OnReadCoil(ModbusMessage msg)
     {
         var coils = Host.Coils;
         if (coils == null) return null;
@@ -82,13 +82,13 @@ public class ModbusSession : NetSession<ModbusSlave>
                 rs[1 + i] = (Byte)b;
             }
 
-            return rs;
+            return (ArrayPacket)rs;
         }
 
         return null;
     }
 
-    Packet OnReadRegister(ModbusMessage msg)
+    IPacket OnReadRegister(ModbusMessage msg)
     {
         var regs = Host.Registers;
         if (regs == null) return null;
@@ -99,7 +99,7 @@ public class ModbusSession : NetSession<ModbusSlave>
         if (addr >= 0 && addr + regCount <= regs.Count)
         {
             var buf = regs.Skip(addr).Take(regCount).SelectMany(e => e.GetData()).ToArray();
-            var pk = new Packet(new Byte[] { (Byte)buf.Length });
+            var pk = new ArrayPacket([(Byte)buf.Length]);
             pk.Append(buf);
             return pk;
         }
@@ -107,7 +107,7 @@ public class ModbusSession : NetSession<ModbusSlave>
         return null;
     }
 
-    Packet OnWriteRegister(ModbusMessage msg)
+    IPacket OnWriteRegister(ModbusMessage msg)
     {
         var regs = Host.Registers;
         if (regs == null) return null;
@@ -130,7 +130,7 @@ public class ModbusSession : NetSession<ModbusSlave>
 
         {
             var addr = reqAddr - regs[0].Address;
-            return regs.Skip(addr).Take(regCount).SelectMany(e => e.GetData()).ToArray();
+            return (ArrayPacket)regs.Skip(addr).Take(regCount).SelectMany(e => e.GetData()).ToArray();
         }
     }
 }
