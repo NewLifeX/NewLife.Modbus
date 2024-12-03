@@ -18,6 +18,8 @@
     <LangVersion>latest</LangVersion>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Doc\newlife.snk</AssemblyOriginatorKeyFile>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <WarningsAsErrors>CA2007</WarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -45,7 +47,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NewLife.IoT" Version="2.3.2024.1106" />
+    <PackageReference Include="NewLife.IoT" Version="2.3.2024.1203" />
   </ItemGroup>
 
   <ItemGroup>

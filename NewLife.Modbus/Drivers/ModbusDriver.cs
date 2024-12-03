@@ -145,7 +145,7 @@ public abstract class ModbusDriver : DriverBase
                 // 其中一项读取报错时，直接跳过，不要影响其它批次
                 try
                 {
-                    seg.Data = Modbus.Read(seg.ReadCode, n.Host, (UInt16)seg.Address, (UInt16)seg.Count)?.ReadBytes(-1);
+                    seg.Data = Modbus.Read(seg.ReadCode, n.Host, (UInt16)seg.Address, (UInt16)seg.Count)?.ReadBytes();
 
                     //var x = seg.Data.Join(" ", e => e.ToHex());
                 }

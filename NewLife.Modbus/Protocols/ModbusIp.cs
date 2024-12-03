@@ -85,11 +85,11 @@ public abstract class ModbusIp : Modbus
 
     /// <summary>接收响应</summary>
     /// <returns></returns>
-    protected virtual IPacket ReceiveCommand()
+    protected virtual IOwnerPacket ReceiveCommand()
     {
         // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
         var dataLength = 8; // 2+2+2+1+1
-        IPacket pk = null;
+        IOwnerPacket pk = null;
         for (var i = 0; i < 8; i++)
         {
             // 阻塞读取
@@ -137,7 +137,7 @@ public abstract class ModbusIp : Modbus
             while (true)
             {
                 // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
-                var pk = ReceiveCommand();
+                using var pk = ReceiveCommand();
 
                 if (span != null) span.Tag += Environment.NewLine + pk.ToHex(64, "-");
 

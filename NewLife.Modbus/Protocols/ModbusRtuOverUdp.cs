@@ -21,11 +21,11 @@ public class ModbusRtuOverUdp : ModbusIp
 
     /// <summary>接收响应</summary>
     /// <returns></returns>
-    protected override IPacket ReceiveCommand()
+    protected override IOwnerPacket ReceiveCommand()
     {
         // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
         var dataLength = 4; // 1+1+2
-        IPacket pk = null;
+        IOwnerPacket pk = null;
         for (var i = 0; i < 3; i++)
         {
             // 阻塞读取
