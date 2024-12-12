@@ -52,7 +52,7 @@ public class ModbusRtuOverTcp : ModbusIp
     {
         match = true;
 
-        var rs = ModbusRtuMessage.Read(data, true);
+        var rs = ModbusRtuMessage.Read(data.GetSpan(), true);
         if (rs == null) return null;
 
         Log?.Debug("<= {0}", rs);

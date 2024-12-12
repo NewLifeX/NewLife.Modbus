@@ -45,7 +45,7 @@ public class ModbusUdp : ModbusIp
     {
         match = true;
 
-        var rs = ModbusIpMessage.Read(data, true);
+        var rs = ModbusIpMessage.Read(data.GetSpan(), true);
         if (rs == null) return null;
 
         Log?.Debug("<= {0}", rs);

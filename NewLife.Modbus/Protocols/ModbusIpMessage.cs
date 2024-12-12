@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using NewLife.Buffers;
+using NewLife.Data;
 using NewLife.Serialization;
 
 namespace NewLife.IoT.Protocols;
@@ -16,40 +17,28 @@ public class ModbusIpMessage : ModbusMessage
 
     #region 方法
     /// <summary>读取</summary>
-    /// <param name="stream">数据流</param>
-    /// <param name="context">上下文</param>
+    /// <param name="reader">读取器</param>
     /// <returns></returns>
-    public override Boolean Read(Stream stream, Object context)
+    public override Boolean Read(SpanReader reader)
     {
-        var binary = context as Binary ?? new Binary { Stream = stream, IsLittleEndian = false };
+        TransactionId = reader.Read<UInt16>();
+        ProtocolId = reader.Read<UInt16>();
 
-        TransactionId = binary.Read<UInt16>();
-        ProtocolId = binary.Read<UInt16>();
+        var len = reader.Read<UInt16>();
+        if (len < 1 + 1 || reader.Position + len > reader.Capacity) return false;
 
-        var len = binary.Read<UInt16>();
-        if (len < 1 + 1 || stream.Position + len > stream.Length) return false;
-
-        return base.Read(stream, context ?? binary);
-    }
-
-    /// <summary>解析消息</summary>
-    /// <param name="data">数据包</param>
-    /// <param name="reply">是否响应</param>
-    /// <returns></returns>
-    public new static ModbusIpMessage Read(IPacket data, Boolean reply = false)
-    {
-        var msg = new ModbusIpMessage { Reply = reply };
-        return msg.Read(data.GetStream(), null) ? msg : null;
+        return base.Read(reader);
     }
 
     /// <summary>解析消息</summary>
     /// <param name="data"></param>
     /// <param name="reply"></param>
     /// <returns></returns>
-    public new static ModbusIpMessage Read(Byte[] data, Boolean reply = false)
+    public static ModbusIpMessage Read(ReadOnlySpan<Byte> data, Boolean reply = false)
     {
         var msg = new ModbusIpMessage { Reply = reply };
-        return msg.Read(new MemoryStream(data), null) ? msg : null;
+        var reader = new SpanReader(data) { IsLittleEndian = false };
+        return msg.Read(reader) ? msg : null;
     }
 
     /// <summary>写入消息到数据流</summary>

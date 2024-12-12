@@ -19,7 +19,7 @@ public class ModbusMessageTests
         var str = "01-05-00-02-FF-00-2D-FA";
         var dt = str.ToHex();
 
-        var msg = ModbusMessage.Read(dt, false);
+        var msg = ModbusMessage.Parse(dt, false);
         Assert.NotNull(msg);
 
         Assert.Equal(1, msg.Host);
@@ -40,8 +40,7 @@ public class ModbusMessageTests
         var str = "01-05-00-02-00-00-6C-0A";
         var dt = str.ToHex();
 
-        var msg = new ModbusMessage { Reply = true };
-        msg.Read(new MemoryStream(dt), null);
+        var msg = ModbusMessage.Parse(dt, true);
         Assert.NotNull(msg);
 
         Assert.Equal(1, msg.Host);

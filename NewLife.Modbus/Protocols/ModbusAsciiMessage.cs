@@ -1,4 +1,7 @@
-﻿using NewLife.Data;
+﻿using System.IO;
+using System.Text;
+using NewLife.Buffers;
+using NewLife.Data;
 using NewLife.Serialization;
 
 namespace NewLife.IoT.Protocols;
@@ -16,12 +19,11 @@ public class ModbusAsciiMessage : ModbusMessage
 
     #region 方法
     /// <summary>读取</summary>
-    /// <param name="stream">数据流</param>
-    /// <param name="context">上下文</param>
+    /// <param name="reader">读取器</param>
     /// <returns></returns>
-    public override Boolean Read(Stream stream, Object context)
+    public override Boolean Read(SpanReader reader)
     {
-        var str = stream.ToStr();
+        var str = reader.ReadString(-1, Encoding.ASCII);
         if (str.Length < 1 + 2 + 2 + 2 || str[0] != ':') return false;
 
         // 找到结束符
@@ -29,11 +31,9 @@ public class ModbusAsciiMessage : ModbusMessage
         if (p < 0) return false;
 
         var buf = str[1..p].ToHex();
-        var ms = new MemoryStream(buf, 0, buf.Length - 1);
+        var reader2 = new SpanReader(buf) { IsLittleEndian = false };
 
-        var binary = context as Binary ?? new Binary { Stream = ms, IsLittleEndian = false };
-
-        if (!base.Read(ms, context ?? binary)) return false;
+        if (!base.Read(reader2)) return false;
 
         Lrc = buf[^1];
         Lrc2 = ModbusHelper.Lrc(buf, 0, buf.Length - 1);
@@ -42,23 +42,14 @@ public class ModbusAsciiMessage : ModbusMessage
     }
 
     /// <summary>解析消息</summary>
-    /// <param name="data">数据包</param>
-    /// <param name="reply">是否响应</param>
-    /// <returns></returns>
-    public static new ModbusAsciiMessage Read(IPacket data, Boolean reply = false)
-    {
-        var msg = new ModbusAsciiMessage { Reply = reply };
-        return msg.Read(data.GetStream(), null) ? msg : null;
-    }
-
-    /// <summary>解析消息</summary>
     /// <param name="data"></param>
     /// <param name="reply"></param>
     /// <returns></returns>
-    public static new ModbusAsciiMessage Read(Byte[] data, Boolean reply = false)
+    public static ModbusAsciiMessage Read(ReadOnlySpan<Byte> data, Boolean reply = false)
     {
         var msg = new ModbusAsciiMessage { Reply = reply };
-        return msg.Read(new MemoryStream(data), null) ? msg : null;
+        var reader = new SpanReader(data) { IsLittleEndian = false };
+        return msg.Read(reader) ? msg : null;
     }
 
     /// <summary>写入消息到数据流</summary>

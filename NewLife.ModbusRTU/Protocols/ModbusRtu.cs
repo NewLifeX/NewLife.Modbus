@@ -132,7 +132,7 @@ public class ModbusRtu : Modbus
             var crc2 = buf.ToUInt16(len);
             if (crc != crc2) WriteLog("Crc Error {0:X4}!={1:X4} !", crc, crc2);
 
-            var rs = ModbusRtuMessage.Read(pk, true);
+            var rs = ModbusRtuMessage.Read(pk.GetSpan(), true);
             if (rs == null) return null;
 
             Log?.Debug("<= {0}", rs);
