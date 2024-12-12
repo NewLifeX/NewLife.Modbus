@@ -19,7 +19,8 @@ public class ModbusMessageTests
         var str = "01-05-00-02-FF-00-2D-FA";
         var dt = str.ToHex();
 
-        var msg = ModbusMessage.Parse(dt, false);
+        var msg = new ModbusMessage();
+        msg.Read(dt);
         Assert.NotNull(msg);
 
         Assert.Equal(1, msg.Host);
@@ -40,7 +41,8 @@ public class ModbusMessageTests
         var str = "01-05-00-02-00-00-6C-0A";
         var dt = str.ToHex();
 
-        var msg = ModbusMessage.Parse(dt, true);
+        var msg = new ModbusMessage { Reply = true };
+        msg.Read(dt);
         Assert.NotNull(msg);
 
         Assert.Equal(1, msg.Host);
@@ -51,9 +53,9 @@ public class ModbusMessageTests
         Assert.Equal(0x0000, msg.Payload.ReadBytes(2, 2).ToUInt16(0, false));
         Assert.Equal("WriteCoil 000200006C0A", msg.ToString());
 
-        var ms = new MemoryStream();
-        msg.Write(ms, null);
-        Assert.Equal(str, ms.ToArray().ToHex("-"));
+        var buf = new Byte[1024];
+        var count = msg.Writer(buf);
+        Assert.Equal(str, buf.ToHex("-", 0, count));
     }
 
     [Fact]

@@ -1,7 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using NewLife.Buffers;
 using NewLife.Data;
-using NewLife.Serialization;
 
 namespace NewLife.IoT.Protocols;
 
@@ -45,7 +44,7 @@ public class ModbusMessage //: IAccessor
     #endregion
 
     #region 方法
-    /// <summary>读取</summary>
+    /// <summary>从数据读取消息</summary>
     /// <param name="reader">读取器</param>
     /// <returns></returns>
     public virtual Boolean Read(SpanReader reader)
@@ -67,54 +66,63 @@ public class ModbusMessage //: IAccessor
         return true;
     }
 
-    /// <summary>解析消息</summary>
+    /// <summary>从数据读取消息</summary>
     /// <param name="data"></param>
-    /// <param name="reply"></param>
     /// <returns></returns>
-    public static ModbusMessage Parse(ReadOnlySpan<Byte> data, Boolean reply = false)
+    public virtual Int32 Read(ReadOnlySpan<Byte> data)
     {
-        var msg = new ModbusMessage { Reply = reply };
         var reader = new SpanReader(data) { IsLittleEndian = false };
-        return msg.Read(reader) ? msg : null;
+        if (!Read(reader)) return -1;
+
+        return reader.Position;
     }
 
-    /// <summary>写入消息到数据流</summary>
-    /// <param name="stream">数据流</param>
-    /// <param name="context">上下文</param>
+    /// <summary>写入消息到数据</summary>
+    /// <param name="writer">写入器</param>
     /// <returns></returns>
-    public virtual Boolean Write(Stream stream, Object context)
+    public virtual Boolean Write(SpanWriter writer)
     {
-        var binary = context as Binary ?? new Binary { Stream = stream, IsLittleEndian = false };
-
-        binary.Write(Host);
+        writer.Write(Host);
 
         var b = (Byte)Code;
         if (ErrorCode > 0) b |= 0x80;
-        binary.Write(b);
+        writer.Write(b);
 
         // 异常码
         if (ErrorCode > 0)
         {
-            binary.Write((Byte)ErrorCode);
+            writer.Write((Byte)ErrorCode);
             return true;
         }
 
-        //var pk = Payload;
-        //if (pk != null) binary.Write(pk.Data, pk.Offset, pk.Count);
-        Payload?.CopyTo(binary.Stream);
+        var pk = Payload;
+        if (pk != null) writer.Write(pk.GetSpan());
 
         return true;
     }
 
+    /// <summary>写入消息到数据</summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    public virtual Int32 Writer(Span<Byte> data)
+    {
+        var writer = new SpanWriter(data) { IsLittleEndian = false };
+        if (!Write(writer)) return -1;
+
+        return writer.Position;
+    }
+
     /// <summary>消息转数据包</summary>
     /// <returns></returns>
-    public IPacket ToPacket()
+    public virtual IPacket ToPacket(Int32 bufferSize = 256)
     {
-        var ms = new MemoryStream();
-        Write(ms, null);
+        var pk = new OwnerPacket(bufferSize);
+        var writer = new SpanWriter(pk.GetSpan()) { IsLittleEndian = false };
+        if (!Write(writer)) return null;
 
-        ms.Position = 0;
-        return new ArrayPacket(ms);
+        pk.Resize(writer.Position);
+
+        return pk;
     }
 
     /// <summary>创建响应</summary>

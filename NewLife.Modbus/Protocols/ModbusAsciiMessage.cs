@@ -1,8 +1,6 @@
-﻿using System.IO;
-using System.Text;
+﻿using System.Text;
 using NewLife.Buffers;
 using NewLife.Data;
-using NewLife.Serialization;
 
 namespace NewLife.IoT.Protocols;
 
@@ -18,7 +16,7 @@ public class ModbusAsciiMessage : ModbusMessage
     #endregion
 
     #region 方法
-    /// <summary>读取</summary>
+    /// <summary>从数据读取消息</summary>
     /// <param name="reader">读取器</param>
     /// <returns></returns>
     public override Boolean Read(SpanReader reader)
@@ -41,9 +39,9 @@ public class ModbusAsciiMessage : ModbusMessage
         return true;
     }
 
-    /// <summary>解析消息</summary>
-    /// <param name="data"></param>
-    /// <param name="reply"></param>
+    /// <summary>从数据读取消息</summary>
+    /// <param name="data">数据</param>
+    /// <param name="reply">是否响应</param>
     /// <returns></returns>
     public static ModbusAsciiMessage Read(ReadOnlySpan<Byte> data, Boolean reply = false)
     {
@@ -52,27 +50,27 @@ public class ModbusAsciiMessage : ModbusMessage
         return msg.Read(reader) ? msg : null;
     }
 
-    /// <summary>写入消息到数据流</summary>
-    /// <param name="stream">数据流</param>
-    /// <param name="context">上下文</param>
+    /// <summary>写入消息到数据</summary>
+    /// <param name="writer">写入器</param>
     /// <returns></returns>
-    public override Boolean Write(Stream stream, Object context)
+    public override Boolean Write(SpanWriter writer)
     {
-        var ms = new MemoryStream();
-        if (!base.Write(ms, context)) return false;
+        using var pk = new OwnerPacket(256);
+        var writer2 = new SpanWriter(pk.GetSpan()) { IsLittleEndian = false };
+        if (!base.Write(writer2)) return false;
 
-        var buf = ms.ToArray();
+        var buf = pk.GetSpan()[..writer2.Position].ToArray();
 
         Lrc2 = ModbusHelper.Lrc(buf, 0, buf.Length);
 
-        stream.Write((Byte)':');
+        writer.Write((Byte)':');
         for (var i = 0; i < buf.Length; i++)
         {
-            stream.Write(buf[i].ToString("X2").GetBytes());
+            writer.Write(buf[i].ToString("X2").GetBytes());
         }
-        stream.Write(Lrc2.ToString("X2").GetBytes());
-        stream.Write((Byte)'\r');
-        stream.Write((Byte)'\n');
+        writer.Write(Lrc2.ToString("X2").GetBytes());
+        writer.Write((Byte)'\r');
+        writer.Write((Byte)'\n');
 
         return true;
     }

@@ -47,7 +47,7 @@ public class ModbusSession : NetSession<ModbusSlave>
 
         Log?.Debug("=> {0}", rs);
 
-        Send(rs.ToPacket());
+        Send(rs.ToPacket(8192));
 
         base.OnReceive(e);
     }

@@ -1,7 +1,5 @@
-﻿using System.IO;
-using NewLife.Buffers;
+﻿using NewLife.Buffers;
 using NewLife.Data;
-using NewLife.Serialization;
 
 namespace NewLife.IoT.Protocols;
 
@@ -17,7 +15,7 @@ public class ModbusRtuMessage : ModbusMessage
     #endregion
 
     #region 方法
-    /// <summary>读取</summary>
+    /// <summary>从数据读取消息</summary>
     /// <param name="reader">读取器</param>
     /// <returns></returns>
     public override Boolean Read(SpanReader reader)
@@ -40,7 +38,10 @@ public class ModbusRtuMessage : ModbusMessage
         return true;
     }
 
-    /// <summary>解析消息</summary>
+    /// <summary>从数据读取消息</summary>
+    /// <param name="data">数据</param>
+    /// <param name="reply">是否响应</param>
+    /// <returns></returns>
     public static ModbusRtuMessage Read(ReadOnlySpan<Byte> data, Boolean reply = false)
     {
         var msg = new ModbusRtuMessage { Reply = reply };
@@ -48,19 +49,18 @@ public class ModbusRtuMessage : ModbusMessage
         return msg.Read(reader) ? msg : null;
     }
 
-    /// <summary>写入消息到数据流</summary>
-    /// <param name="stream">数据流</param>
-    /// <param name="context">上下文</param>
+    /// <summary>写入消息到数据</summary>
+    /// <param name="writer">写入器</param>
     /// <returns></returns>
-    public override Boolean Write(Stream stream, Object context)
+    public override Boolean Write(SpanWriter writer)
     {
-        var p = stream.Position;
-        if (!base.Write(stream, context)) return false;
+        var p = writer.Position;
+        if (!base.Write(writer)) return false;
 
-        stream.Position = p;
-        Crc2 = ModbusHelper.Crc(stream);
+        //writer.Position = p;
+        //Crc2 = ModbusHelper.Crc(writer);
 
-        stream.Write(Crc2.GetBytes(true));
+        writer.Write(Crc2.GetBytes(true));
 
         return true;
     }

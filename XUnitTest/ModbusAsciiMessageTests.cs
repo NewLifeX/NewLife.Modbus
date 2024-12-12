@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using NewLife;
 using NewLife.Data;
 using NewLife.IoT.Protocols;
@@ -52,9 +53,9 @@ public class ModbusAsciiMessageTests
         Assert.Equal(msg.Lrc, msg.Lrc2);
         Assert.Equal("ReadRegister 0121", msg.ToString());
 
-        var ms = new MemoryStream();
-        msg.Write(ms, null);
-        Assert.Equal(dt.ToHex("-"), ms.ToArray().ToHex("-"));
+        var buf = new Byte[1024];
+        var count = msg.Writer(buf);
+        Assert.Equal(str, buf.ToHex("-", 0, count));
     }
 
     [Fact]
@@ -81,9 +82,9 @@ public class ModbusAsciiMessageTests
         Assert.Equal(msg.Lrc, msg.Lrc2);
         Assert.Equal("ReadRegister 006B0003", msg.ToString());
 
-        var ms = new MemoryStream();
-        msg.Write(ms, null);
-        Assert.Equal(dt.ToHex("-"), ms.ToArray().ToHex("-"));
+        var buf = new Byte[1024];
+        var count = msg.Writer(buf);
+        Assert.Equal(str, buf.ToHex("-", 0, count));
     }
 
     [Fact]

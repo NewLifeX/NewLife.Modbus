@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using NewLife;
 using NewLife.Data;
 using NewLife.IoT.Protocols;
@@ -49,9 +50,9 @@ public class ModbusRtuMessageTests
         Assert.Equal(0x0A6C, msg.Crc);
         Assert.Equal("WriteCoil 00020000", msg.ToString());
 
-        var ms = new MemoryStream();
-        msg.Write(ms, null);
-        Assert.Equal(str, ms.ToArray().ToHex("-"));
+        var buf = new Byte[1024];
+        var count = msg.Writer(buf);
+        Assert.Equal(str, buf.ToHex("-", 0, count));
     }
 
     [Fact]
