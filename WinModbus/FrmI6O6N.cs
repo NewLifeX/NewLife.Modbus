@@ -26,8 +26,8 @@ public partial class FrmI6O6N : Form
 
     private void btnReadInfo_Click(Object sender, EventArgs e)
     {
-        var pk = _modbus.ReadRegister(_host, 0x1000, 14);
-        if (pk == null || pk.Total == 0) return;
+        var pk = _modbus.Read(FunctionCodes.ReadRegister, _host, 0x1000, 14);
+        if (pk == null || pk.Length == 0) return;
 
         var ms = pk.GetStream();
         var reader = new Binary { Stream = ms, IsLittleEndian = false };
@@ -181,10 +181,9 @@ public partial class FrmI6O6N : Form
     private void btnReadAddr_Click(Object sender, EventArgs e)
     {
         var rs = _modbus.ReadRegister(_host, 0, 1);
-        if (rs == null || rs.Total < 3) return;
+        if (rs == null || rs.Length < 3) return;
 
-        var addr = rs.ReadBytes(1).ToUInt16(0, false);
-        numHost.Value = addr;
+        numHost.Value = rs[0];
     }
 
     private void btnWriteAddr_Click(Object sender, EventArgs e)

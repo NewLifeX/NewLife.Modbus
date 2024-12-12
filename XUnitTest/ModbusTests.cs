@@ -51,9 +51,8 @@ public class ModbusTests
         var rs = modbus.ReadCoil(1, 100, 2);
         Assert.NotNull(rs);
 
-        var buf = rs.ReadBytes();
-        Assert.Equal(2, buf.Length);
-        Assert.Equal(0x1234, buf.ToUInt16(0, false));
+        Assert.Equal(2, rs.Length);
+        Assert.True(rs[0]);
     }
 
     [Fact]
@@ -70,9 +69,8 @@ public class ModbusTests
         var rs = modbus.ReadDiscrete(1, 100, 2);
         Assert.NotNull(rs);
 
-        var buf = rs.ReadBytes();
-        Assert.Equal(2, buf.Length);
-        Assert.Equal(0x1234, buf.ToUInt16(0, false));
+        Assert.Equal(2, rs.Length);
+        Assert.True(rs[0]);
     }
 
     [Fact]
@@ -89,10 +87,9 @@ public class ModbusTests
         var rs = modbus.ReadRegister(1, 100, 2);
         Assert.NotNull(rs);
 
-        var buf = rs.ReadBytes();
-        Assert.Equal(4, buf.Length);
-        Assert.Equal(0x1234, buf.ToUInt16(0, false));
-        Assert.Equal(0x5678, buf.ToUInt16(2, false));
+        Assert.Equal(2, rs.Length);
+        Assert.Equal(0x1234, rs[0]);
+        Assert.Equal(0x5678, rs[1]);
     }
 
     [Fact]
@@ -109,10 +106,9 @@ public class ModbusTests
         var rs = modbus.ReadInput(1, 100, 2);
         Assert.NotNull(rs);
 
-        var buf = rs.ReadBytes();
-        Assert.Equal(4, buf.Length);
-        Assert.Equal(0x1234, buf.ToUInt16(0, false));
-        Assert.Equal(0x5678, buf.ToUInt16(2, false));
+        Assert.Equal(2, rs.Length);
+        Assert.Equal(0x1234, rs[0]);
+        Assert.Equal(0x5678, rs[1]);
     }
 
     [Fact]

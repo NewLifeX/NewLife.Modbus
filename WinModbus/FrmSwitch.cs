@@ -71,17 +71,16 @@ public partial class FrmSwitch : Form
     private void btnReadAddr_Click(Object sender, EventArgs e)
     {
         var rs = _modbus.ReadRegister(_host, 0, 1);
-        if (rs == null || rs.Total < 3) return;
+        if (rs == null || rs.Length == 0) return;
 
-        var addr = rs.ReadBytes(1).ToUInt16(0, false);
-        numAddr.Value = addr;
+        numAddr.Value = rs[0];
     }
 
     private void btnWriteAddr_Click(Object sender, EventArgs e)
     {
         var addr = (UInt16)numAddr.Value;
 
-        _modbus.WriteRegisters(_host, 0, new[] { addr });
+        _modbus.WriteRegisters(_host, 0, [addr]);
     }
 
     private void btnReadIn_Click(Object sender, EventArgs e)

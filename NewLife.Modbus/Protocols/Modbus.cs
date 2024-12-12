@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using NewLife.Buffers;
 using NewLife.Data;
 using NewLife.IoT.Controllers;
 using NewLife.Log;
@@ -97,17 +98,37 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <exception cref="NotSupportedException"></exception>
     public virtual IPacket Read(FunctionCodes code, Byte host, UInt16 address, UInt16 count)
     {
-        switch (code)
+        using var span = Tracer?.NewSpan($"modbus:{code}", $"host={host} address={address}/0x{address:X4} count={count}");
+        try
         {
-            case FunctionCodes.ReadCoil: return ReadCoil(host, address, count);
-            case FunctionCodes.ReadDiscrete: return ReadDiscrete(host, address, count);
-            case FunctionCodes.ReadRegister: return ReadRegister(host, address, count);
-            case FunctionCodes.ReadInput: return ReadInput(host, address, count);
-            default:
-                break;
-        }
+            switch (code)
+            {
+                case FunctionCodes.ReadCoil:
+                case FunctionCodes.ReadDiscrete:
+                case FunctionCodes.ReadRegister:
+                case FunctionCodes.ReadInput:
+                    var rs = SendCommand(code, host, address, count);
+                    if (rs == null) return null;
 
-        throw new NotSupportedException($"ModbusRead不支持[{code}]");
+                    var len = -1;
+                    if (ValidResponse)
+                    {
+                        len = rs[0];
+                        if (rs.Total < 1 + len) return null;
+                    }
+
+                    return rs.Slice(1, len);
+                default:
+                    break;
+            }
+
+            throw new NotSupportedException($"ModbusRead不支持[{code}]");
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            throw;
+        }
     }
 
     /// <summary>读取线圈，0x01</summary>
@@ -115,7 +136,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="count">线圈数量。一般要求8的倍数</param>
     /// <returns>线圈状态字节数组</returns>
-    public IPacket ReadCoil(Byte host, UInt16 address, UInt16 count)
+    public Boolean[] ReadCoil(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadCoil", $"host={host} address={address}/0x{address:X4} count={count}");
         try
@@ -123,14 +144,28 @@ public abstract class Modbus : DisposeBase, IModbus
             var rs = SendCommand(FunctionCodes.ReadCoil, host, address, count);
             if (rs == null) return null;
 
-            var len = -1;
             if (ValidResponse)
             {
-                len = rs[0];
-                if (rs.Total < 1 + len) return null;
+                var len = count / 8;
+                if (count % 8 > 0) len++;
+                if (rs.Total < len) return null;
             }
 
-            return rs.Slice(1, len);
+            var sp = rs.GetSpan();
+            var bs = new Boolean[count];
+            var k = 0;
+            for (var i = 0; i < rs.Length && k < count; i++)
+            {
+                var b = sp[i];
+                for (var j = 0; j < 8 && k < count; j++)
+                {
+                    bs[k++] = ((b >> j) & 1) == 1;
+                }
+            }
+
+            rs.TryDispose();
+
+            return bs;
         }
         catch (Exception ex)
         {
@@ -144,7 +179,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="count">输入数量。一般要求8的倍数</param>
     /// <returns>输入状态字节数组</returns>
-    public IPacket ReadDiscrete(Byte host, UInt16 address, UInt16 count)
+    public Boolean[] ReadDiscrete(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadDiscrete", $"host={host} address={address}/0x{address:X4} count={count}");
         try
@@ -152,14 +187,28 @@ public abstract class Modbus : DisposeBase, IModbus
             var rs = SendCommand(FunctionCodes.ReadDiscrete, host, address, count);
             if (rs == null) return null;
 
-            var len = -1;
             if (ValidResponse)
             {
-                len = rs[0];
-                if (rs.Total < 1 + len) return null;
+                var len = count / 8;
+                if (count % 8 > 0) len++;
+                if (rs.Total < len) return null;
             }
 
-            return rs.Slice(1, len);
+            var sp = rs.GetSpan();
+            var bs = new Boolean[count];
+            var k = 0;
+            for (var i = 0; i < rs.Length && k < count; i++)
+            {
+                var b = sp[i];
+                for (var j = 0; j < 8 && k < count; j++)
+                {
+                    bs[k++] = ((b >> j) & 1) == 1;
+                }
+            }
+
+            rs.TryDispose();
+
+            return bs;
         }
         catch (Exception ex)
         {
@@ -173,7 +222,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="count">寄存器数量。每个寄存器2个字节</param>
     /// <returns>寄存器值数组</returns>
-    public IPacket ReadRegister(Byte host, UInt16 address, UInt16 count)
+    public UInt16[] ReadRegister(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadRegister", $"host={host} address={address}/0x{address:X4} count={count}");
         try
@@ -181,14 +230,19 @@ public abstract class Modbus : DisposeBase, IModbus
             var rs = SendCommand(FunctionCodes.ReadRegister, host, address, count);
             if (rs == null) return null;
 
-            var len = -1;
-            if (ValidResponse)
+            var reader = new SpanReader(rs.GetSpan()) { IsLittleEndian = false };
+            var len = reader.ReadByte();
+            if (ValidResponse && rs.Total < 1 + len) return null;
+
+            var bs = new UInt16[count];
+            for (var i = 0; i < count; i++)
             {
-                len = rs[0];
-                if (rs.Total < 1 + len) return null;
+                bs[i] = reader.ReadUInt16();
             }
 
-            return rs.Slice(1, len);
+            rs.TryDispose();
+
+            return bs;
         }
         catch (Exception ex)
         {
@@ -202,7 +256,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="count">输入寄存器数量。每个寄存器2个字节</param>
     /// <returns>输入寄存器值数组</returns>
-    public IPacket ReadInput(Byte host, UInt16 address, UInt16 count)
+    public UInt16[] ReadInput(Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan("modbus:ReadInput", $"host={host} address={address}/0x{address:X4} count={count}");
         try
@@ -210,14 +264,19 @@ public abstract class Modbus : DisposeBase, IModbus
             var rs = SendCommand(FunctionCodes.ReadInput, host, address, count);
             if (rs == null) return null;
 
-            var len = -1;
-            if (ValidResponse)
+            var reader = new SpanReader(rs.GetSpan()) { IsLittleEndian = false };
+            var len = reader.ReadByte();
+            if (ValidResponse && rs.Total < 1 + len) return null;
+
+            var bs = new UInt16[count];
+            for (var i = 0; i < count; i++)
             {
-                len = rs[0];
-                if (rs.Total < 1 + len) return null;
+                bs[i] = reader.ReadUInt16();
             }
 
-            return rs.Slice(1, len);
+            rs.TryDispose();
+
+            return bs;
         }
         catch (Exception ex)
         {
