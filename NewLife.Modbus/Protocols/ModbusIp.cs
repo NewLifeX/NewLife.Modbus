@@ -18,9 +18,14 @@ public abstract class ModbusIp : Modbus
     #endregion
 
     #region 构造
-    /// <summary>
-    /// 销毁
-    /// </summary>
+    /// <summary>实例化</summary>
+    public ModbusIp()
+    {
+        // ADU大小。默认标准256，可扩大到65535
+        BufferSize = 1024;
+    }
+
+    /// <summary>销毁</summary>
     /// <param name="disposing"></param>
     protected override void Dispose(Boolean disposing)
     {
@@ -60,7 +65,7 @@ public abstract class ModbusIp : Modbus
             if (client is SessionBase session)
             {
                 session.MaxAsync = 0;
-                session.BufferSize = 256;
+                session.BufferSize = BufferSize;
             }
 
             //if (client is TcpSession tcp)
