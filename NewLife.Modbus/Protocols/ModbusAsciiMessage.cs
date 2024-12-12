@@ -19,7 +19,7 @@ public class ModbusAsciiMessage : ModbusMessage
     /// <summary>从数据读取消息</summary>
     /// <param name="reader">读取器</param>
     /// <returns></returns>
-    public override Boolean Read(SpanReader reader)
+    public override Boolean Read(ref SpanReader reader)
     {
         var str = reader.ReadString(-1, Encoding.ASCII);
         if (str.Length < 1 + 2 + 2 + 2 || str[0] != ':') return false;
@@ -31,7 +31,7 @@ public class ModbusAsciiMessage : ModbusMessage
         var buf = str[1..p].ToHex();
         var reader2 = new SpanReader(buf) { IsLittleEndian = false };
 
-        if (!base.Read(reader2)) return false;
+        if (!base.Read(ref reader2)) return false;
 
         Lrc = buf[^1];
         Lrc2 = ModbusHelper.Lrc(buf, 0, buf.Length - 1);
@@ -47,17 +47,17 @@ public class ModbusAsciiMessage : ModbusMessage
     {
         var msg = new ModbusAsciiMessage { Reply = reply };
         var reader = new SpanReader(data) { IsLittleEndian = false };
-        return msg.Read(reader) ? msg : null;
+        return msg.Read(ref reader) ? msg : null;
     }
 
     /// <summary>写入消息到数据</summary>
     /// <param name="writer">写入器</param>
     /// <returns></returns>
-    public override Boolean Write(SpanWriter writer)
+    public override Boolean Write(ref SpanWriter writer)
     {
         using var pk = new OwnerPacket(256);
         var writer2 = new SpanWriter(pk.GetSpan()) { IsLittleEndian = false };
-        if (!base.Write(writer2)) return false;
+        if (!base.Write(ref writer2)) return false;
 
         var buf = pk.GetSpan()[..writer2.Position].ToArray();
 

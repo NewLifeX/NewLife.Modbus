@@ -44,6 +44,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="NewLife.Core" Version="11.1.2024.1212-beta1042" />
   </ItemGroup>
 
   <ItemGroup>

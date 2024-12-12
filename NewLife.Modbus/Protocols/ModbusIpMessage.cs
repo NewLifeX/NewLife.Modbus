@@ -17,7 +17,7 @@ public class ModbusIpMessage : ModbusMessage
     /// <summary>从数据读取消息</summary>
     /// <param name="reader">读取器</param>
     /// <returns></returns>
-    public override Boolean Read(SpanReader reader)
+    public override Boolean Read(ref SpanReader reader)
     {
         TransactionId = reader.ReadUInt16();
         ProtocolId = reader.ReadUInt16();
@@ -25,7 +25,7 @@ public class ModbusIpMessage : ModbusMessage
         var len = reader.ReadUInt16();
         if (len < 1 + 1 || len > reader.FreeCapacity) return false;
 
-        return base.Read(reader);
+        return base.Read(ref reader);
     }
 
     /// <summary>从数据读取消息</summary>
@@ -36,13 +36,13 @@ public class ModbusIpMessage : ModbusMessage
     {
         var msg = new ModbusIpMessage { Reply = reply };
         var reader = new SpanReader(data) { IsLittleEndian = false };
-        return msg.Read(reader) ? msg : null;
+        return msg.Read(ref reader) ? msg : null;
     }
 
     /// <summary>写入消息到数据</summary>
     /// <param name="writer">写入器</param>
     /// <returns></returns>
-    public override Boolean Write(SpanWriter writer)
+    public override Boolean Write(ref SpanWriter writer)
     {
         writer.Write(TransactionId);
         writer.Write(ProtocolId);
@@ -51,7 +51,7 @@ public class ModbusIpMessage : ModbusMessage
         var len = 2 + (pk?.Total ?? 0);
         writer.Write((UInt16)len);
 
-        return base.Write(writer);
+        return base.Write(ref writer);
     }
 
     /// <summary>创建响应</summary>

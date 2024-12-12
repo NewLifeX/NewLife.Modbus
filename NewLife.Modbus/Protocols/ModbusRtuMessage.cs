@@ -1,5 +1,7 @@
 ﻿using NewLife.Buffers;
 using NewLife.Data;
+using NewLife.Reflection;
+using NewLife.Security;
 
 namespace NewLife.IoT.Protocols;
 
@@ -18,10 +20,10 @@ public class ModbusRtuMessage : ModbusMessage
     /// <summary>从数据读取消息</summary>
     /// <param name="reader">读取器</param>
     /// <returns></returns>
-    public override Boolean Read(SpanReader reader)
+    public override Boolean Read(ref SpanReader reader)
     {
         var p = reader.Position;
-        if (!base.Read(reader)) return false;
+        if (!base.Read(ref reader)) return false;
 
         // 从负载数据里把Crc取出来
         var pk = Payload;
@@ -32,8 +34,12 @@ public class ModbusRtuMessage : ModbusMessage
             Payload = pk.Slice(0, count - 2);
         }
 
-        //reader.Position = p;
-        //Crc2 = ModbusHelper.Crc(stream, (Int32)(stream.Length - stream.Position - 2));
+        // 计算CRC
+        var p2 = reader.Position - 2;
+        var sp = reader.Span.Slice(p, p2 - p);
+        var buf = sp.ToArray();
+
+        Crc2 = Crc16.ComputeModbus(buf, 0, buf.Length);
 
         return true;
     }
@@ -46,16 +52,16 @@ public class ModbusRtuMessage : ModbusMessage
     {
         var msg = new ModbusRtuMessage { Reply = reply };
         var reader = new SpanReader(data) { IsLittleEndian = false };
-        return msg.Read(reader) ? msg : null;
+        return msg.Read(ref reader) ? msg : null;
     }
 
     /// <summary>写入消息到数据</summary>
     /// <param name="writer">写入器</param>
     /// <returns></returns>
-    public override Boolean Write(SpanWriter writer)
+    public override Boolean Write(ref SpanWriter writer)
     {
         var p = writer.Position;
-        if (!base.Write(writer)) return false;
+        if (!base.Write(ref writer)) return false;
 
         //writer.Position = p;
         //Crc2 = ModbusHelper.Crc(writer);

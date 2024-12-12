@@ -47,7 +47,7 @@ public class ModbusMessage //: IAccessor
     /// <summary>从数据读取消息</summary>
     /// <param name="reader">读取器</param>
     /// <returns></returns>
-    public virtual Boolean Read(SpanReader reader)
+    public virtual Boolean Read(ref SpanReader reader)
     {
         Host = reader.ReadByte();
 
@@ -61,7 +61,8 @@ public class ModbusMessage //: IAccessor
             return true;
         }
 
-        Payload = (ArrayPacket)reader.ReadBytes(-1).ToArray();
+        if (reader.FreeCapacity > 0)
+            Payload = (ArrayPacket)reader.ReadBytes(reader.FreeCapacity).ToArray();
 
         return true;
     }
@@ -72,7 +73,7 @@ public class ModbusMessage //: IAccessor
     public virtual Int32 Read(ReadOnlySpan<Byte> data)
     {
         var reader = new SpanReader(data) { IsLittleEndian = false };
-        if (!Read(reader)) return -1;
+        if (!Read(ref reader)) return -1;
 
         return reader.Position;
     }
@@ -80,7 +81,7 @@ public class ModbusMessage //: IAccessor
     /// <summary>写入消息到数据</summary>
     /// <param name="writer">写入器</param>
     /// <returns></returns>
-    public virtual Boolean Write(SpanWriter writer)
+    public virtual Boolean Write(ref SpanWriter writer)
     {
         writer.Write(Host);
 
@@ -107,7 +108,7 @@ public class ModbusMessage //: IAccessor
     public virtual Int32 Writer(Span<Byte> data)
     {
         var writer = new SpanWriter(data) { IsLittleEndian = false };
-        if (!Write(writer)) return -1;
+        if (!Write(ref writer)) return -1;
 
         return writer.Position;
     }
@@ -118,7 +119,7 @@ public class ModbusMessage //: IAccessor
     {
         var pk = new OwnerPacket(bufferSize);
         var writer = new SpanWriter(pk.GetSpan()) { IsLittleEndian = false };
-        if (!Write(writer)) return null;
+        if (!Write(ref writer)) return null;
 
         pk.Resize(writer.Position);
 

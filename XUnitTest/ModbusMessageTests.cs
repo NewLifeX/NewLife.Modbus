@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
 using NewLife.IoT.Protocols;
@@ -20,7 +16,8 @@ public class ModbusMessageTests
         var dt = str.ToHex();
 
         var msg = new ModbusMessage();
-        msg.Read(dt);
+        var rs = msg.Read(dt);
+        Assert.Equal(dt.Length, rs);
         Assert.NotNull(msg);
 
         Assert.Equal(1, msg.Host);
@@ -42,7 +39,8 @@ public class ModbusMessageTests
         var dt = str.ToHex();
 
         var msg = new ModbusMessage { Reply = true };
-        msg.Read(dt);
+        var rs = msg.Read(dt);
+        Assert.Equal(dt.Length, rs);
         Assert.NotNull(msg);
 
         Assert.Equal(1, msg.Host);
@@ -76,5 +74,6 @@ public class ModbusMessageTests
         msg.SetRequest(0x0002, 0xABCD);
 
         Assert.Equal("00-02-AB-CD", msg.Payload.ToHex(256, "-"));
+        Assert.Equal("WriteRegister (0x0002, ABCD)", msg.ToString());
     }
 }
