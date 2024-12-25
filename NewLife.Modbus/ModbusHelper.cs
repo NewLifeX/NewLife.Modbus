@@ -36,6 +36,24 @@ public static class ModbusHelper
     }
 
     /// <summary>Crc校验</summary>
+    /// <param name="data">数据</param>
+    /// <returns></returns>
+    public static UInt16 Crc(ReadOnlySpan<Byte> data)
+    {
+        if (data.Length == 0) return 0;
+
+        UInt16 u = 0xFFFF;
+        for (var i = 0; i < data.Length; i++)
+        {
+            var b = data[i];
+            u = (UInt16)(crc_ta[(b ^ u) & 15] ^ (u >> 4));
+            u = (UInt16)(crc_ta[((b >> 4) ^ u) & 15] ^ (u >> 4));
+        }
+
+        return u;
+    }
+
+    /// <summary>Crc校验</summary>
     /// <param name="data">数据流</param>
     /// <param name="count">数量</param>
     /// <returns></returns>
@@ -74,6 +92,22 @@ public static class ModbusHelper
         for (var i = 0; i < count; i++)
         {
             rs += data[offset + i];
+        }
+
+        return (Byte)((rs ^ 0xFF) + 1);
+    }
+
+    /// <summary>LRC校验</summary>
+    /// <param name="data">数据</param>
+    /// <returns></returns>
+    public static Byte Lrc(ReadOnlySpan<Byte> data)
+    {
+        if (data.Length < 1) return 0;
+
+        Byte rs = 0;
+        for (var i = 0; i < data.Length; i++)
+        {
+            rs += data[i];
         }
 
         return (Byte)((rs ^ 0xFF) + 1);

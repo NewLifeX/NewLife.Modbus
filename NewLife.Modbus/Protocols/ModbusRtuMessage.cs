@@ -63,9 +63,11 @@ public class ModbusRtuMessage : ModbusMessage
         var p = writer.Position;
         if (!base.Write(ref writer)) return false;
 
-        //writer.Position = p;
-        //Crc2 = ModbusHelper.Crc(writer);
+        var size = writer.Position - p;
+        writer.Position = p;
+        Crc2 = ModbusHelper.Crc(writer.Span[..size]);
 
+        writer.Position = p + size;
         writer.Write(Crc2.GetBytes(true));
 
         return true;

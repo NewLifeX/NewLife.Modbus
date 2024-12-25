@@ -379,23 +379,13 @@ public abstract class ModbusDriver : DriverBase
         }
         if (type == null) return null;
 
-        switch (type.GetTypeCode())
+        return type.GetTypeCode() switch
         {
-            case TypeCode.Boolean:
-            case TypeCode.Byte:
-            case TypeCode.SByte:
-                return data.ToBoolean() ? [(UInt16)0xFF00] : [(UInt16)0x00];
-            case TypeCode.Int16:
-            case TypeCode.UInt16:
-            case TypeCode.Int32:
-            case TypeCode.UInt32:
-                return data.ToInt() > 0 ? [(UInt16)0xFF00] : [(UInt16)0x00];
-            case TypeCode.Int64:
-            case TypeCode.UInt64:
-                return data.ToLong() > 0 ? [(UInt16)0xFF00] : [(UInt16)0x00];
-            default:
-                return data.ToBoolean() ? [(UInt16)0xFF00] : [(UInt16)0x00];
-        }
+            TypeCode.Boolean or TypeCode.Byte or TypeCode.SByte => data.ToBoolean() ? [0xFF00] : [0x00],
+            TypeCode.Int16 or TypeCode.UInt16 or TypeCode.Int32 or TypeCode.UInt32 => data.ToInt() > 0 ? [0xFF00] : [0x00],
+            TypeCode.Int64 or TypeCode.UInt64 => data.ToLong() > 0 ? [0xFF00] : [0x00],
+            _ => data.ToBoolean() ? [0xFF00] : [0x00],
+        };
     }
 
     /// <summary>原始数据转寄存器数组</summary>
@@ -419,7 +409,7 @@ public abstract class ModbusDriver : DriverBase
             case TypeCode.Boolean:
             case TypeCode.Byte:
             case TypeCode.SByte:
-                return data.ToBoolean() ? [(UInt16)0xFF00] : [(UInt16)0x00];
+                return data.ToBoolean() ? [0xFF00] : [0x00];
             case TypeCode.Int16:
             case TypeCode.UInt16:
                 return [(UInt16)data.ToInt()];
