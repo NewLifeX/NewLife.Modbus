@@ -5,7 +5,7 @@
     <AssemblyTitle>Modbus协议</AssemblyTitle>
     <Description>Modbus基础协议，包括ModbusTcp</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2024 新生命开发团队</Copyright>
+    <Copyright>©2002-2025 新生命开发团队</Copyright>
     <VersionPrefix>2.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
@@ -44,11 +44,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NewLife.Core" Version="11.2.2024.1214-beta0109" />
+    <PackageReference Include="NewLife.Core" Version="11.3.2025.101" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NewLife.IoT" Version="2.4.2024.1212" />
+    <PackageReference Include="NewLife.IoT" Version="2.4.2025.101" />
   </ItemGroup>
 
   <ItemGroup>
