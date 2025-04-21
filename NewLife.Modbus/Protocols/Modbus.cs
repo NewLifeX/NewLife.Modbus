@@ -154,7 +154,7 @@ public abstract class Modbus : DisposeBase, IModbus
             var sp = rs.GetSpan();
             var bs = new Boolean[count];
             var k = 0;
-            for (var i = 0; i < rs.Length && k < count; i++)
+            for (var i = 1; i < rs.Length && k < count; i++)
             {
                 var b = sp[i];
                 for (var j = 0; j < 8 && k < count; j++)
@@ -197,7 +197,7 @@ public abstract class Modbus : DisposeBase, IModbus
             var sp = rs.GetSpan();
             var bs = new Boolean[count];
             var k = 0;
-            for (var i = 0; i < rs.Length && k < count; i++)
+            for (var i = 1; i < rs.Length && k < count; i++)
             {
                 var b = sp[i];
                 for (var j = 0; j < 8 && k < count; j++)
