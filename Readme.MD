@@ -13,7 +13,7 @@
 Modbus协议实现，包括ModbusTcp/ModbusRTU。  
 
 源码： https://github.com/NewLifeX/NewLife.Modbus  
-Nuget：NewLife.Modbus / NewLife.ModbusRT  
+Nuget：[NewLife.Modbus](https://github.com/NewLifeX/NewLife.Modbus/tree/main/NewLife.Modbus) / [NewLife.ModbusRTU](https://github.com/NewLifeX/NewLife.Modbus/tree/main/NewLife.ModbusRTU) 
 
 
 ## 新生命项目矩阵
