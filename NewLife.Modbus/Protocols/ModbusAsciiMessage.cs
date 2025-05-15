@@ -28,8 +28,10 @@ public class ModbusAsciiMessage : ModbusMessage
         var p = str.IndexOf("\r\n");
         if (p < 0) return false;
 
+        // 读取AsciiModbus数据时，最后一个字节是LRC校验
         var buf = str[1..p].ToHex();
-        var reader2 = new SpanReader(buf) { IsLittleEndian = false };
+        var span = new Span<Byte>(buf);
+        var reader2 = new SpanReader(span[..^1]) { IsLittleEndian = false };
 
         if (!base.Read(ref reader2)) return false;
 

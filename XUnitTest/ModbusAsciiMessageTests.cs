@@ -55,7 +55,7 @@ public class ModbusAsciiMessageTests
 
         var buf = new Byte[1024];
         var count = msg.Writer(buf);
-        Assert.Equal(str, buf.ToHex("-", 0, count));
+        Assert.Equal(str, buf.ToHex(" ", 0, count));
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class ModbusAsciiMessageTests
 
         var buf = new Byte[1024];
         var count = msg.Writer(buf);
-        Assert.Equal(str, buf.ToHex("-", 0, count));
+        Assert.Equal(str.Replace(" ", null), buf.ToHex(null, 0, count));
     }
 
     [Fact]
