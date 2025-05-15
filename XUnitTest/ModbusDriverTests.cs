@@ -47,7 +47,7 @@ public class ModbusDriverTests
         Assert.NotNull(modbus);
         Assert.Equal(p.Server, modbus.Server);
         Assert.Equal(p.Timeout, modbus.Timeout);
-        Assert.Equal(256, modbus.BufferSize);
+        Assert.Equal(1024, modbus.BufferSize);
         //Assert.Equal(p.BatchSize, modbus.BatchSize);
         //Assert.Equal(p.Delay, modbus.Delay);
     }

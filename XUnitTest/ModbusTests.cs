@@ -52,7 +52,10 @@ public class ModbusTests
         Assert.NotNull(rs);
 
         Assert.Equal(2, rs.Length);
-        Assert.True(rs[0]);
+        Assert.False(rs[0]);
+        Assert.True(rs[1]);
+        Assert.False(((0x12 >> 0) & 1) == 1);
+        Assert.True(((0x12 >> 1) & 1) == 1);
     }
 
     [Fact]
@@ -70,7 +73,10 @@ public class ModbusTests
         Assert.NotNull(rs);
 
         Assert.Equal(2, rs.Length);
-        Assert.True(rs[0]);
+        Assert.False(rs[0]);
+        Assert.True(rs[1]);
+        Assert.False(((0x12 >> 0) & 1) == 1);
+        Assert.True(((0x12 >> 1) & 1) == 1);
     }
 
     [Fact]
