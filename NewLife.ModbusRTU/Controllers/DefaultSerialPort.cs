@@ -10,6 +10,7 @@ namespace NewLife.IoT.Controllers;
 /// <summary>默认串口实现</summary>
 public class DefaultSerialPort : DisposeBase, ISerialPort
 {
+    #region 属性
     /// <summary>串口名</summary>
     public String PortName { get; set; } = null!;
 
@@ -31,6 +32,7 @@ public class DefaultSerialPort : DisposeBase, ISerialPort
     private SerialPort? _port;
     /// <summary>串口对象</summary>
     public Object Port => _port ??= new(PortName, Baudrate) { ReadTimeout = Timeout, WriteTimeout = Timeout };
+    #endregion
 
     /// <summary>销毁</summary>
     /// <param name="disposing"></param>
@@ -38,32 +40,42 @@ public class DefaultSerialPort : DisposeBase, ISerialPort
     {
         base.Dispose(disposing);
 
-        if (_port != null)
-        {
-            if (Received != null) _port.DataReceived -= OnReceiveSerial;
-
-            _port.TryDispose();
-        }
+        Close();
     }
 
     /// <summary>打开</summary>
     [MemberNotNull(nameof(_port))]
     public virtual void Open()
     {
-        if (_port != null) return;
+        if (_port != null && _port.IsOpen) return;
 
         if (PortName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(PortName));
         if (Baudrate == 0) Baudrate = 9600;
 
-        _port = new SerialPort(PortName, Baudrate)
+        if (_port == null)
         {
-            ReadTimeout = Timeout,
-            WriteTimeout = Timeout
-        };
+            _port = new SerialPort(PortName, Baudrate)
+            {
+                ReadTimeout = Timeout,
+                WriteTimeout = Timeout
+            };
 
-        if (Received != null) _port.DataReceived += OnReceiveSerial;
+            if (Received != null) _port.DataReceived += OnReceiveSerial;
+        }
 
         _port.Open();
+    }
+
+    /// <summary>关闭</summary>
+    public virtual void Close()
+    {
+        if (_port != null)
+        {
+            if (Received != null) _port.DataReceived -= OnReceiveSerial;
+
+            _port.Close();
+            _port = null;
+        }
     }
 
     void OnReceiveSerial(Object sender, SerialDataReceivedEventArgs e)
