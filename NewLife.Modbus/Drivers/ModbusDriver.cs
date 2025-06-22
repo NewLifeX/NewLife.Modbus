@@ -149,7 +149,7 @@ public abstract class ModbusDriver : DriverBase
 
                     //var x = seg.Data.Join(" ", e => e.ToHex());
                 }
-                catch (Exception ex)
+                catch (ModbusException ex)
                 {
                     Log?.Error(ex.ToString());
                 }
