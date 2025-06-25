@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using System.Diagnostics.CodeAnalysis;
+using NewLife.Data;
 using NewLife.Net;
 
 namespace NewLife.IoT.Protocols;
@@ -11,10 +12,10 @@ public abstract class ModbusIp : Modbus
 {
     #region 属性
     /// <summary>服务端地址。tcp://127.0.0.1:502</summary>
-    public String Server { get; set; }
+    public String Server { get; set; } = null!;
 
     /// <summary>网络客户端</summary>
-    protected ISocketClient _client;
+    protected ISocketClient? _client;
     #endregion
 
     #region 构造
@@ -48,6 +49,7 @@ public abstract class ModbusIp : Modbus
     }
 
     /// <summary>打开</summary>
+    [MemberNotNull(nameof(_client))]
     public override void Open()
     {
         if (_client == null || _client.Disposed)
@@ -86,15 +88,17 @@ public abstract class ModbusIp : Modbus
     /// <param name="data">目标数据包</param>
     /// <param name="match">是否匹配请求</param>
     /// <returns>响应消息</returns>
-    protected abstract ModbusMessage ReadMessage(ModbusMessage request, IPacket data, out Boolean match);
+    protected abstract ModbusMessage? ReadMessage(ModbusMessage request, IPacket data, out Boolean match);
 
     /// <summary>接收响应</summary>
     /// <returns></returns>
-    protected virtual IOwnerPacket ReceiveCommand()
+    protected virtual IOwnerPacket? ReceiveCommand()
     {
+        Open();
+
         // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
         var dataLength = 8; // 2+2+2+1+1
-        IOwnerPacket pk = null;
+        IOwnerPacket? pk = null;
         for (var i = 0; i < 8; i++)
         {
             // 阻塞读取
@@ -118,7 +122,7 @@ public abstract class ModbusIp : Modbus
     /// <summary>发送消息并接收返回</summary>
     /// <param name="message">Modbus消息</param>
     /// <returns></returns>
-    internal protected override ModbusMessage SendCommand(ModbusMessage message)
+    internal protected override ModbusMessage? SendCommand(ModbusMessage message)
     {
         Open();
 
@@ -143,6 +147,7 @@ public abstract class ModbusIp : Modbus
             {
                 // 设置协议最短长度，避免读取指令不完整。由于请求响应机制，不存在粘包返回。
                 using var pk = ReceiveCommand();
+                if (pk == null) continue;
 
                 if (span != null) span.Tag += Environment.NewLine + pk.ToHex(64, "-");
 
@@ -155,7 +160,7 @@ public abstract class ModbusIp : Modbus
                 if (!match) continue;
 
                 // 检查功能码
-                if (rs.ErrorCode > 0) throw new ModbusException(rs.ErrorCode, rs.ErrorCode.GetDescription());
+                if (rs.ErrorCode > 0) throw new ModbusException(rs.ErrorCode, rs.ErrorCode.GetDescription()!);
 
                 return rs;
             }

@@ -9,10 +9,10 @@ public class ModbusSlave : NetServer<ModbusSession>
 {
     #region 属性
     /// <summary>寄存器区</summary>
-    public List<RegisterUnit> Registers { get; set; }
+    public List<RegisterUnit> Registers { get; set; } = [];
 
     /// <summary>线圈区</summary>
-    public List<CoilUnit> Coils { get; set; }
+    public List<CoilUnit> Coils { get; set; } = [];
     #endregion
 
     #region 构造

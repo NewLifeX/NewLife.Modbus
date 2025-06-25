@@ -26,7 +26,7 @@ public abstract class Modbus : DisposeBase, IModbus
     public Boolean ValidResponse { get; set; } = true;
 
     /// <summary>性能追踪器</summary>
-    public ITracer Tracer { get; set; }
+    public ITracer? Tracer { get; set; }
     #endregion
 
     #region 构造
@@ -52,7 +52,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="address">地址。例如0x0002</param>
     /// <param name="value">数据值</param>
     /// <returns>返回响应消息的负载部分</returns>
-    public virtual IPacket SendCommand(FunctionCodes code, Byte host, UInt16 address, UInt16 value)
+    public virtual IPacket? SendCommand(FunctionCodes code, Byte host, UInt16 address, UInt16 value)
     {
         var msg = CreateMessage();
         msg.Host = host;
@@ -70,7 +70,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="host">主机。一般是1</param>
     /// <param name="data">数据</param>
     /// <returns>返回响应消息的负载部分</returns>
-    public virtual IPacket SendCommand(FunctionCodes code, Byte host, IPacket data)
+    public virtual IPacket? SendCommand(FunctionCodes code, Byte host, IPacket data)
     {
         var msg = CreateMessage();
         msg.Host = host;
@@ -85,7 +85,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <summary>发送消息并接收返回</summary>
     /// <param name="message">Modbus消息</param>
     /// <returns></returns>
-    internal protected abstract ModbusMessage SendCommand(ModbusMessage message);
+    internal protected abstract ModbusMessage? SendCommand(ModbusMessage message);
     #endregion
 
     #region 读取
@@ -96,7 +96,7 @@ public abstract class Modbus : DisposeBase, IModbus
     /// <param name="count">个数。寄存器个数或线圈个数</param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
-    public virtual IPacket Read(FunctionCodes code, Byte host, UInt16 address, UInt16 count)
+    public virtual IPacket? Read(FunctionCodes code, Byte host, UInt16 address, UInt16 count)
     {
         using var span = Tracer?.NewSpan($"modbus:{code}", $"host={host} address={address}/0x{address:X4} count={count}");
         try
@@ -142,13 +142,13 @@ public abstract class Modbus : DisposeBase, IModbus
         try
         {
             var rs = SendCommand(FunctionCodes.ReadCoil, host, address, count);
-            if (rs == null) return null;
+            if (rs == null) return [];
 
             if (ValidResponse)
             {
                 var len = count / 8;
                 if (count % 8 > 0) len++;
-                if (rs.Total < len) return null;
+                if (rs.Total < len) return [];
             }
 
             var sp = rs.GetSpan();
@@ -185,13 +185,13 @@ public abstract class Modbus : DisposeBase, IModbus
         try
         {
             var rs = SendCommand(FunctionCodes.ReadDiscrete, host, address, count);
-            if (rs == null) return null;
+            if (rs == null) return [];
 
             if (ValidResponse)
             {
                 var len = count / 8;
                 if (count % 8 > 0) len++;
-                if (rs.Total < len) return null;
+                if (rs.Total < len) return [];
             }
 
             var sp = rs.GetSpan();
@@ -228,11 +228,11 @@ public abstract class Modbus : DisposeBase, IModbus
         try
         {
             var rs = SendCommand(FunctionCodes.ReadRegister, host, address, count);
-            if (rs == null) return null;
+            if (rs == null) return [];
 
             var reader = new SpanReader(rs.GetSpan()) { IsLittleEndian = false };
             var len = reader.ReadByte();
-            if (ValidResponse && rs.Total < 1 + len) return null;
+            if (ValidResponse && rs.Total < 1 + len) return [];
 
             var bs = new UInt16[count];
             for (var i = 0; i < count; i++)
@@ -262,11 +262,11 @@ public abstract class Modbus : DisposeBase, IModbus
         try
         {
             var rs = SendCommand(FunctionCodes.ReadInput, host, address, count);
-            if (rs == null) return null;
+            if (rs == null) return [];
 
             var reader = new SpanReader(rs.GetSpan()) { IsLittleEndian = false };
             var len = reader.ReadByte();
-            if (ValidResponse && rs.Total < 1 + len) return null;
+            if (ValidResponse && rs.Total < 1 + len) return [];
 
             var bs = new UInt16[count];
             for (var i = 0; i < count; i++)
@@ -447,7 +447,7 @@ public abstract class Modbus : DisposeBase, IModbus
 
     #region 日志
     /// <summary>日志</summary>
-    public ILog Log { get; set; }
+    public ILog? Log { get; set; }
 
     /// <summary>写日志</summary>
     /// <param name="format"></param>

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Ports;
 using NewLife.Data;
 using NewLife.IoT;
@@ -11,7 +12,7 @@ public class ModbusAscii : Modbus
 {
     #region 属性
     /// <summary>端口</summary>
-    public String PortName { get; set; }
+    public String PortName { get; set; } = null!;
 
     /// <summary>波特率</summary>
     public Int32 Baudrate { get; set; } = 9600;
@@ -19,7 +20,7 @@ public class ModbusAscii : Modbus
     /// <summary>字节超时。数据包间隔，默认10ms</summary>
     public Int32 ByteTimeout { get; set; } = 10;
 
-    private SerialPort _port;
+    private SerialPort? _port;
     #endregion
 
     #region 构造
@@ -50,6 +51,7 @@ public class ModbusAscii : Modbus
     }
 
     /// <summary>打开</summary>
+    [MemberNotNull(nameof(_port))]
     public override void Open()
     {
         if (_port == null)
@@ -69,7 +71,7 @@ public class ModbusAscii : Modbus
     /// <summary>发送消息并接收返回</summary>
     /// <param name="message">Modbus消息</param>
     /// <returns></returns>
-    protected override ModbusMessage SendCommand(ModbusMessage message)
+    protected override ModbusMessage? SendCommand(ModbusMessage message)
     {
         Open();
 
@@ -80,7 +82,6 @@ public class ModbusAscii : Modbus
 
         var cmd = message.ToPacket();
         var buf = cmd.ToArray();
-
         var crc = ModbusHelper.Crc(buf, 0, buf.Length);
         cmd.Append(crc.GetBytes(true));
         buf = cmd.ToArray();

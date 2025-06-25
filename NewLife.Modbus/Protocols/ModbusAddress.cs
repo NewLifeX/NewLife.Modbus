@@ -1,11 +1,13 @@
-﻿namespace NewLife.IoT.Protocols;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace NewLife.IoT.Protocols;
 
 /// <summary>Modbus点位地址。支持区域和位域</summary>
 public class ModbusAddress
 {
     #region 属性
     /// <summary>区域</summary>
-    public ModbusRange Range { get; set; }
+    public ModbusRange? Range { get; set; }
 
     /// <summary>地址</summary>
     public UInt16 Address { get; set; }
@@ -18,7 +20,7 @@ public class ModbusAddress
     /// <param name="address"></param>
     /// <param name="modbusAddress"></param>
     /// <returns></returns>
-    public static Boolean TryParse(String address, out ModbusAddress modbusAddress)
+    public static Boolean TryParse(String address, [NotNullWhen(true)] out ModbusAddress? modbusAddress)
     {
         modbusAddress = null;
         if (address.IsNullOrEmpty()) return false;

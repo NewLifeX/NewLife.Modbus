@@ -26,7 +26,7 @@ public class ModbusMessage //: IAccessor
 
     /// <summary>负载数据</summary>
     [IgnoreDataMember]
-    public IPacket Payload { get; set; }
+    public IPacket? Payload { get; set; }
     #endregion
 
     #region 构造
@@ -119,7 +119,7 @@ public class ModbusMessage //: IAccessor
     {
         var pk = new OwnerPacket(bufferSize);
         var writer = new SpanWriter(pk.GetSpan()) { IsLittleEndian = false };
-        if (!Write(ref writer)) return null;
+        if (!Write(ref writer)) return null!;
 
         pk.Resize(writer.Position);
 
@@ -152,6 +152,8 @@ public class ModbusMessage //: IAccessor
     public (UInt16 address, UInt16 count) GetRequest()
     {
         var pk = Payload;
+        if (pk == null || pk.Total < 4) throw new InvalidDataException();
+
         var address = pk.ReadBytes(0, 2).ToUInt16(0, false);
         var count = pk.ReadBytes(2, 2).ToUInt16(0, false);
 

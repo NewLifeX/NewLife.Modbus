@@ -32,7 +32,7 @@ public class ModbusIpMessage : ModbusMessage
     /// <param name="data">数据</param>
     /// <param name="reply">是否响应</param>
     /// <returns></returns>
-    public static ModbusIpMessage Read(ReadOnlySpan<Byte> data, Boolean reply = false)
+    public static ModbusIpMessage? Read(ReadOnlySpan<Byte> data, Boolean reply = false)
     {
         var msg = new ModbusIpMessage { Reply = reply };
         var reader = new SpanReader(data) { IsLittleEndian = false };

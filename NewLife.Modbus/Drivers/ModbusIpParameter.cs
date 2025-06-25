@@ -7,7 +7,7 @@ public class ModbusIpParameter : ModbusParameter, IDriverParameterKey
 {
     /// <summary>地址。tcp地址如127.0.0.1:502</summary>
     [Description("地址。tcp地址如127.0.0.1:502")]
-    public String Server { get; set; }
+    public String Server { get; set; } = null!;
 
     /// <summary>获取唯一标识</summary>
     /// <returns></returns>

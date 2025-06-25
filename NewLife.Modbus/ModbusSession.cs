@@ -13,6 +13,8 @@ public class ModbusSession : NetSession<ModbusSlave>
     /// <param name="e"></param>
     protected override void OnReceive(ReceivedEventArgs e)
     {
+        if (e.Packet == null) return;
+
         var msg = ModbusIpMessage.Read(e.Packet.GetSpan());
         if (msg == null) return;
 
@@ -52,7 +54,7 @@ public class ModbusSession : NetSession<ModbusSlave>
         base.OnReceive(e);
     }
 
-    IPacket OnReadCoil(ModbusMessage msg)
+    IPacket? OnReadCoil(ModbusMessage msg)
     {
         var coils = Host.Coils;
         if (coils == null) return null;
@@ -88,7 +90,7 @@ public class ModbusSession : NetSession<ModbusSlave>
         return null;
     }
 
-    IPacket OnReadRegister(ModbusMessage msg)
+    IPacket? OnReadRegister(ModbusMessage msg)
     {
         var regs = Host.Registers;
         if (regs == null) return null;
@@ -107,10 +109,10 @@ public class ModbusSession : NetSession<ModbusSlave>
         return null;
     }
 
-    IPacket OnWriteRegister(ModbusMessage msg)
+    IPacket? OnWriteRegister(ModbusMessage msg)
     {
         var regs = Host.Registers;
-        if (regs == null) return null;
+        if (regs == null || msg.Payload == null) return null;
 
         // 连续地址
         var regCount = 0;
