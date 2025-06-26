@@ -4,6 +4,10 @@ using NewLife.IoT.Protocols;
 namespace NewLife.IoT.Drivers;
 
 /// <summary>TCP网络版Modbus</summary>
+/// <remarks>
+/// 每个Tcp/Udp从站地址，对应一个Modbus驱动实例，避免多个虚拟设备实例化多个驱动实例导致网络连接过多。
+/// 该唯一性由驱动工厂DriverFactory来保证。
+/// </remarks>
 [Driver("ModbusTcp")]
 [DisplayName("TCP网络版ModbusTcp")]
 public class ModbusTcpDriver : ModbusDriver, IDriver

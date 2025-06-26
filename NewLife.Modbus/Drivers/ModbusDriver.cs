@@ -7,9 +7,11 @@ using NewLife.Reflection;
 
 namespace NewLife.IoT.Drivers;
 
-/// <summary>
-/// Modbus协议封装
-/// </summary>
+/// <summary>Modbus协议驱动</summary>
+/// <remarks>
+/// 每个串口或Tcp/Udp从站地址，对应一个Modbus驱动实例，避免多个虚拟设备实例化多个驱动实例导致串口争夺。
+/// 该唯一性由驱动工厂DriverFactory来保证。
+/// </remarks>
 public abstract class ModbusDriver : DriverBase
 {
     #region 属性

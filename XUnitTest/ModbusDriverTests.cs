@@ -41,6 +41,10 @@ public class ModbusDriverTests
         Assert.Equal(p.Host, node2.Host);
         Assert.Equal(p.ReadCode, node2.ReadCode);
         Assert.Equal(p.WriteCode, node2.WriteCode);
+        Assert.Equal(driver, node2.Driver);
+        Assert.Equal(p, node2.Parameter);
+
+        // Open时没有传入device
         Assert.Null(node2.Device);
 
         var modbus = driver.Modbus as ModbusTcp;
@@ -48,8 +52,6 @@ public class ModbusDriverTests
         Assert.Equal(p.Server, modbus.Server);
         Assert.Equal(p.Timeout, modbus.Timeout);
         Assert.Equal(1024, modbus.BufferSize);
-        //Assert.Equal(p.BatchSize, modbus.BatchSize);
-        //Assert.Equal(p.Delay, modbus.Delay);
     }
 
     [Fact]
@@ -72,6 +74,7 @@ public class ModbusDriverTests
         driver.Close(node1);
         Assert.NotNull(driver.Modbus);
 
+        // 二次关闭后，才释放Modbus
         driver.Close(node2);
         Assert.Null(driver.Modbus);
     }
@@ -143,7 +146,7 @@ public class ModbusDriverTests
 
         // 凑批成为一个
         var segs = driver.BuildSegments(points, new ModbusParameter());
-        Assert.Equal(1, segs.Count);
+        Assert.Single(segs);
         Assert.Equal(0, segs[0].Address);
         Assert.Equal(10, segs[0].Count);
 
@@ -178,7 +181,7 @@ public class ModbusDriverTests
 
         // 凑批成为一个
         var segs = driver.BuildSegments(points, new ModbusParameter());
-        Assert.Equal(1, segs.Count);
+        Assert.Single(segs);
         Assert.Equal(0, segs[0].Address);
         Assert.Equal(15, segs[0].Count);
 
