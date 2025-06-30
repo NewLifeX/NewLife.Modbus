@@ -173,7 +173,7 @@ public abstract class ModbusDriver : DriverBase
                 var pt = points.FirstOrDefault(e => e.Name == item.Key);
                 if (pt != null && item.Value is Byte[] data)
                 {
-                    var v = spec.DecodeByThingModel(data, pt);
+                    var v = spec.Decode(data, pt);
                     if (v != null) rs[item.Key] = v;
                 }
             }
@@ -340,7 +340,7 @@ public abstract class ModbusDriver : DriverBase
         if (spec != null && value is not Byte[])
         {
             // 普通数值转为字节数组
-            value = spec.EncodeByThingModel(value, point);
+            value = spec.Encode(value, point);
         }
 
         UInt16[] vs;
