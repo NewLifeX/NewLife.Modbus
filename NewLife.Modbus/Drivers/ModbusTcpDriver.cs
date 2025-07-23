@@ -9,7 +9,7 @@ namespace NewLife.IoT.Drivers;
 /// 该唯一性由驱动工厂DriverFactory来保证。
 /// </remarks>
 [Driver("ModbusTcp")]
-[DisplayName("TCP网络版ModbusTcp")]
+[DisplayName("TCP网络版Modbus")]
 public class ModbusTcpDriver : ModbusDriver, IDriver
 {
     #region 方法

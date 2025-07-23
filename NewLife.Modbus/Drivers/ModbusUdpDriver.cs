@@ -9,7 +9,7 @@ namespace NewLife.IoT.Drivers;
 /// 该唯一性由驱动工厂DriverFactory来保证。
 /// </remarks>
 [Driver("ModbusUdp")]
-[DisplayName("UDP网络版ModbusUdp")]
+[DisplayName("UDP网络版Modbus")]
 public class ModbusUdpDriver : ModbusDriver, IDriver
 {
     #region 方法
