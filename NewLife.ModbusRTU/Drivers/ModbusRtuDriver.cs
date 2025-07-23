@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel;
 using NewLife.IoT;
+using NewLife.IoT.Controllers;
 using NewLife.IoT.Drivers;
 using NewLife.IoT.Protocols;
+using NewLife.Model;
 using NewLife.Serial.Protocols;
 
 namespace NewLife.Serial.Drivers;
@@ -46,9 +48,18 @@ public class ModbusRtuDriver : ModbusDriver, IDriver
 
         node.Parameter = p;
 
+        // 借助IBoard服务获取串口映射名，在A2工业计算机中，可使用COM1替代/dev/ttyAMA0
+        var board = ServiceProvider?.GetService<IBoard>();
+        var portName = p.PortName;
+        if (board != null)
+        {
+            var portName2 = board.Map(portName);
+            if (!portName2.IsNullOrEmpty()) portName = portName2;
+        }
+
         var modbus = new ModbusRtu
         {
-            PortName = p.PortName,
+            PortName = portName,
             Baudrate = p.Baudrate,
             DataBits = p.DataBits,
             Parity = p.Parity,
