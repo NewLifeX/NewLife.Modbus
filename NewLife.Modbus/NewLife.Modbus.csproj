@@ -5,7 +5,7 @@
     <AssemblyTitle>Modbus协议</AssemblyTitle>
     <Description>Modbus基础协议，包括ModbusTcp</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2025 新生命开发团队</Copyright>
+    <Copyright>©2002-2026 新生命开发团队</Copyright>
     <VersionPrefix>2.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
