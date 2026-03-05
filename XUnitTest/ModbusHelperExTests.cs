@@ -131,7 +131,7 @@ public class ModbusHelperExTests
         using var stream = new MemoryStream(data);
         stream.Position = 2;
         var crc = ModbusHelper.Crc(stream);
-        // 只对01-05-00-02-FF-00计算CRC
+        // 只对01-05-00-02-FF-00计算CRC，已知CRC值与Crc_KnownValue测试一致
         Assert.Equal(0xFA2D, crc);
     }
     #endregion
